@@ -1,0 +1,10 @@
+click
+colorama
+inquirerpy
+mutagen
+pillow
+protobuf
+pybase62
+pycryptodome
+pywidevine
+yt-dlp

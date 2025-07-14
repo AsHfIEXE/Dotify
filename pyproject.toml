@@ -1,0 +1,30 @@
+[project]
+name = "dotify"
+description = "A command-line app for downloading songs, podcasts and videos from Spotify."
+requires-python = ">=3.10"
+authors = [{ name = "AsHfIEXE" }]
+dependencies = [
+    "click",
+    "colorama",
+    "inquirerpy",
+    "mutagen",
+    "pillow",
+    "protobuf",
+    "pybase62",
+    "pycryptodome",
+    "pywidevine",
+    "yt-dlp",
+]
+readme = "README.md"
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/AsHfIEXE/Dotify"
+Repository = "https://github.com/AsHfIEXE/Dotify"
+
+[build-system]
+requires = ["flit_core"]
+build-backend = "flit_core.buildapi"
+
+[project.scripts]
+dotify = "dotify.cli:main"
