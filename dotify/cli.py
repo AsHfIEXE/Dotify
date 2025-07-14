@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 
 import inspect
@@ -7,6 +6,7 @@ import logging
 import time
 from enum import Enum
 from pathlib import Path
+import random 
 
 import click
 import colorama
@@ -89,7 +89,6 @@ def load_config_file(
 @click.command()
 @click.help_option("-h", "--help")
 @click.version_option(__version__, "-v", "--version")
-# CLI specific options
 @click.argument(
     "urls",
     nargs=-1,
@@ -100,8 +99,8 @@ def load_config_file(
     "--wait-interval",
     "-w",
     type=float,
-    default=5,
-    help="Wait interval between downloads in seconds.",
+    default=12,
+    help="Base wait interval between downloads in seconds. A random jitter is added to this.",
 )
 @click.option(
     "--disable-wvd",
@@ -153,7 +152,6 @@ def load_config_file(
     default=Path("./cookies.txt"),
     help="Path to cookies file.",
 )
-# Downloader specific options
 @click.option(
     "--output-path",
     "-o",
@@ -296,7 +294,6 @@ def load_config_file(
     default=downloader_sig.parameters["truncate"].default,
     help="Maximum length of the file/folder names.",
 )
-# DownloaderAudio specific options
 @click.option(
     "--audio-quality",
     "-a",
@@ -317,7 +314,6 @@ def load_config_file(
     default=downloader_audio_sig.parameters["remux_mode"].default,
     help="Remux mode for songs and podcasts.",
 )
-# DownloaderSong specific options
 @click.option(
     "--lrc-only",
     "-l",
@@ -329,7 +325,6 @@ def load_config_file(
     is_flag=True,
     help="Don't download the synced lyrics.",
 )
-# DownloaderVideo specific options
 @click.option(
     "--video-format",
     type=VideoFormat,
@@ -342,7 +337,6 @@ def load_config_file(
     default=downloader_video_sig.parameters["remux_mode"].default,
     help="Remux mode for videos.",
 )
-# This option should always be last
 @click.option(
     "--no-config-file",
     "-n",
@@ -545,6 +539,15 @@ def main(
                 exc_info=no_exceptions,
             )
             continue
+        
+        if len(download_queue) > 150:  
+            logger.warning("=" * 60)
+            logger.warning(f"WARNING: Your download queue is very large ({len(download_queue)} items).")
+            logger.warning("Aggressive downloading can lead to account suspension.")
+            logger.warning("It is STRONGLY recommended to use a higher --wait-interval and to download smaller playlists.")
+            logger.warning("=" * 60)
+            logger.info("Proceeding in 10 seconds...")
+            time.sleep(10)
         for index, download_queue_item in enumerate(download_queue, start=1):
             queue_progress = color_text(
                 f"Track {index}/{len(download_queue)} from URL {url_index}/{len(urls)}",
@@ -616,8 +619,21 @@ def main(
                 )
             finally:
                 if wait_interval > 0 and index != len(download_queue):
+                    jitter = random.uniform(2, 7)  
+                    total_wait = wait_interval + jitter
                     logger.debug(
-                        f"Waiting for {wait_interval} second(s) before continuing"
+                        f"Waiting for {total_wait:.2f} second(s) before continuing"
                     )
-                    time.sleep(wait_interval)
+                    time.sleep(total_wait)
+            
+            DOWNLOAD_BATCH_SIZE = 75  
+            LONG_WAIT_SECONDS = 60 * 5  
+            
+            if index % DOWNLOAD_BATCH_SIZE == 0 and index < len(download_queue):
+                logger.warning(
+                    f"Downloaded a batch of {DOWNLOAD_BATCH_SIZE}. Taking a {LONG_WAIT_SECONDS // 60}-minute "
+                    "break to reduce detection risk."
+                )
+                time.sleep(LONG_WAIT_SECONDS)
+                
         logger.info(f"Done ({error_count} error(s))")
