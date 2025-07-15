@@ -50,7 +50,7 @@ The following tools are optional but required for specific features. Add them to
 
 1.  Install the package `dotify` using pip:
     ```bash
-    pip install dotify
+    pip install dotify-cli
     ```
 2.  Set up the cookies file.
     *   Move the cookies file to the directory where you'll run Dotify and rename it to `cookies.txt`.
