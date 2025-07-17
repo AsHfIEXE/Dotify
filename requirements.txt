@@ -8,6 +8,3 @@ pybase62
 pycryptodome
 pywidevine
 yt-dlp
-Flask
-Flask-SocketIO
-python-socketio
