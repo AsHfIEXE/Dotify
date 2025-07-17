@@ -540,14 +540,20 @@ def main(
             )
             continue
         
-        if len(download_queue) > 150:  
+        if len(download_queue) > 150:
             logger.warning("=" * 60)
-            logger.warning(f"WARNING: Your download queue is very large ({len(download_queue)} items).")
+            logger.warning(
+                f"WARNING: Your download queue is very large ({len(download_queue)} items)."
+            )
             logger.warning("Aggressive downloading can lead to account suspension.")
-            logger.warning("It is STRONGLY recommended to use a higher --wait-interval and to download smaller playlists.")
+            logger.warning(
+                "It is STRONGLY recommended to use a higher --wait-interval and to download smaller playlists."
+            )
             logger.warning("=" * 60)
-            logger.info("Proceeding in 10 seconds...")
-            time.sleep(10)
+            confirm = input("Do you want to continue? (y/n): ")
+            if confirm.lower() != "y":
+                logger.info("Download cancelled by user.")
+                continue
         for index, download_queue_item in enumerate(download_queue, start=1):
             queue_progress = color_text(
                 f"Track {index}/{len(download_queue)} from URL {url_index}/{len(urls)}",
@@ -619,7 +625,7 @@ def main(
                 )
             finally:
                 if wait_interval > 0 and index != len(download_queue):
-                    jitter = random.uniform(2, 7)  
+                    jitter = random.uniform(2, 7)
                     total_wait = wait_interval + jitter
                     logger.debug(
                         f"Waiting for {total_wait:.2f} second(s) before continuing"

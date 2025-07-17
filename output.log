@@ -1,0 +1,32 @@
+[32m[INFO     19:30:51][0m Starting Dotify
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/app/dotify/__main__.py", line 3, in <module>
+    main()
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/click/core.py", line 1442, in __call__
+    return self.main(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/click/core.py", line 1363, in main
+    rv = self.invoke(ctx)
+         ^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/click/core.py", line 1226, in invoke
+    return ctx.invoke(self.callback, **ctx.params)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jules/.pyenv/versions/3.12.11/lib/python3.12/site-packages/click/core.py", line 794, in invoke
+    return callback(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/dotify/cli.py", line 399, in main
+    spotify_api = SpotifyApi.from_cookies_file(cookies_path)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/app/dotify/spotify_api.py", line 63, in from_cookies_file
+    return cls(sp_dc=sp_dc)
+           ^^^^^^^^^^^^^^^^
+  File "/app/dotify/spotify_api.py", line 46, in __init__
+    self._set_session()
+  File "/app/dotify/spotify_api.py", line 93, in _set_session
+    self._set_session_info()
+  File "/app/dotify/spotify_api.py", line 116, in _set_session_info
+    "authorization": f"Bearer {self.session_info['accessToken']}",
+                               ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^
+KeyError: 'accessToken'
