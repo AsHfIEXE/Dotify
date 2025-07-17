@@ -1,0 +1,2 @@
+# Netscape HTTP Cookie File
+.spotify.com	TRUE	/	FALSE	0	sp_dc	dummy_cookie
