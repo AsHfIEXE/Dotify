@@ -4,7 +4,7 @@
 ![Python Version](https://img.shields.io/pypi/pyversions/dotify?style=for-the-badge&logo=GitHub&logoColor=white)
 ![License](https://img.shields.io/github/license/AsHfIEXE/Dotify?style=for-the-badge&logo=GitHub&logoColor=white)
 ![GitHub stars](https://img.shields.io/github/stars/AsHfIEXE/Dotify?style=for-the-badge&logo=GitHub&logoColor=white)
-
+ 
 
 # Dotify - Spotify Music Downloader 🎵
 
