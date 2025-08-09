@@ -47,7 +47,7 @@ The following tools are optional but required for specific features. Add them to
 *   **aria2c**: Required when setting `aria2c` as the download mode.
 
 ## Installation
-
+   
 1.  Install the package `dotify` using pip:
     ```bash
     pip install dotify-cli
