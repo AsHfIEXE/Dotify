@@ -1,53 +1,40 @@
-from __future__ import annotations
+import string
+from json import JSONDecodeError
+from typing import Any
 
-from pathlib import Path
-
-import click
-import colorama
-import requests
-
-from .constants import X_NOT_FOUND_STRING
+import httpx
 
 
-def check_response(response: requests.Response):
+def raise_for_status(response: httpx.Response):
     try:
         response.raise_for_status()
-    except requests.HTTPError:
-        _raise_response_exception(response)
+    except httpx.HTTPError as e:
+        raise Exception(
+            f"Request failed with status code {response.status_code}: {response.text}"
+        )
 
 
-def _raise_response_exception(response: requests.Response):
-    raise Exception(
-        f"Request failed with status code {response.status_code}: {response.text}"
-    )
+def safe_json(response: httpx.Response) -> dict | None:
+    try:
+        return response.json()
+    except JSONDecodeError:
+        return None
 
 
-def prompt_path(is_file: bool, initial_path: Path, description: str) -> Path:
-    path_validator = click.Path(
-        exists=True,
-        file_okay=is_file,
-        dir_okay=not is_file,
-        path_type=Path,
-    )
-    while True:
-        try:
-            path_obj = path_validator.convert(initial_path, None, None)
-            break
-        except click.BadParameter as e:
-            path_str = click.prompt(
-                (
-                    f"{X_NOT_FOUND_STRING.format(description, initial_path.absolute())} or "
-                    "the specified path is not valid. "
-                    "Move it to that location, type the path or drag and drop it here. "
-                    "Then, press enter to continue"
-                ),
-                default=str(initial_path),
-                show_default=False,
-            )
-            path_str = path_str.strip('"')
-            initial_path = Path(path_str)
-    return path_obj
+class DotifyException(Exception):
+    pass
 
 
-def color_text(text: str, color) -> str:
-    return color + text + colorama.Style.RESET_ALL
+class CustomStringFormatter(string.Formatter):
+    def format_field(self, value: Any, format_spec: str) -> str:
+        if isinstance(value, tuple) and len(value) == 2:
+            actual_value, fallback_value = value
+            if actual_value is None:
+                return fallback_value
+
+            try:
+                return super().format_field(actual_value, format_spec)
+            except Exception:
+                return fallback_value
+
+        return super().format_field(value, format_spec)
