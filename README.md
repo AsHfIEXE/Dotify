@@ -178,6 +178,7 @@ Config file values can be overridden using command-line arguments.
 | `--no-lrc` / `no_lrc`                   | Don't download the synced lyrics.                             | `false`                   |
 | `--video-format` / `video_format`       | Video format.                                                 | `mp4`                     |
 | `--remux-mode-video` / `remux_mode_video` | Remux mode for videos.                                      | `ffmpeg`                  |
+| `--dry-run` / `dry_run`                 | Simulate the process without downloading any files.           | `false`                   |
 | `--no-config-file`, `-n` / -            | Do not use a config file.                                     | `false`                   |
 
 ### Tag Variables
@@ -198,7 +199,7 @@ Encountered a bug or have some feedback? Please [open an issue on GitHub](https:
 
 
 ## Support
-For support, email me at `salahin0ashfi@gmail.com
+For support, email me at `salahin0ashfi@gmail.com` or join my discord and get help : [Discord](https://discord.gg/YSv62BvCtS)
 
 ## License
 This project is licensed under the [MIT License](LICENSE).

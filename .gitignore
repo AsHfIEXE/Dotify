@@ -1,9 +1,41 @@
-/*
-__pycache__
-!votify
-!.gitignore
-!.python-version
-!pyproject.toml
-!README.md
-!requirements.txt
-!uv.lock
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+*.egg
+.eggs/
+
+# Build / Distribution
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+env/
+testenv/
+
+# Packaging / lock artifacts (keep uv.lock for reproducible installs)
+# uv.lock — intentionally tracked
+
+# IDE / editor
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Dotify runtime / credential files — NEVER commit these
+cookies.txt
+device.wvd
+*.wvd
+config.json
+*.log
+
+# Spotify DLL (key emulation)
+*.dll
