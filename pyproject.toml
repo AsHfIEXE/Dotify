@@ -1,5 +1,5 @@
 [project]
-name = "dotify"
+name = "dotify-cli"
 version = "1.9.8"
 description = "A command-line app for downloading songs, podcasts and videos from Spotify."
 readme = "README.md"

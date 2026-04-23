@@ -46,6 +46,25 @@ The following tools are optional but required for specific features. Add them to
 *   **mp4decrypt**: Required when setting `mp4box` or `mp4decrypt` as the remux mode for audio.
 *   **aria2c**: Required when setting `aria2c` as the download mode.
 
+## Quick Setup (one-time)
+
+1.  **Install Dotify:**
+    ```bash
+    pip install dotify-cli
+    ```
+2.  **Install FFmpeg** and add it to your system `PATH`:
+    *   **Windows**: Download from [AnimMouse's FFmpeg Builds](https://www.animemusic.info/2024/02/ffmpeg-builds-static-shared.html).
+    *   **Linux**: Download from [John Van Sickle's FFmpeg Builds](https://johnvansickle.com/ffmpeg/).
+3.  **Get your Spotify cookies:**
+    *   Install the [Get cookies.txt LOCALLY](https://chrome.google.com/webstore/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) Chrome extension (or [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/) for Firefox).
+    *   Go to `open.spotify.com`, log in, then export cookies.
+    *   Save the file as `cookies.txt` in the folder where you'll run Dotify.
+    *   Alternatively, specify the path using the `--cookies-path` argument.
+4.  **Get a `.wvd` file** (needed for song decryption):
+    *   Obtain one using [KeyDive](https://github.com/hyugogirubato/KeyDive) from an Android device.
+    *   Save it as `device.wvd` in the same folder.
+    *   Alternatively, specify the path using the `--wvd-path` argument.
+
 ## Installation
    
 1.  Install the package `dotify` using pip:

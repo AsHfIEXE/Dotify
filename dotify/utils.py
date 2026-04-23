@@ -11,7 +11,7 @@ def raise_for_status(response: httpx.Response):
     except httpx.HTTPError as e:
         raise Exception(
             f"Request failed with status code {response.status_code}: {response.text}"
-        )
+        ) from e
 
 
 def safe_json(response: httpx.Response) -> dict | None:
