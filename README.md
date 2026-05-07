@@ -1,6 +1,6 @@
 <div align="center">
 
-  !
+
 ![GitHub](https://img.shields.io/badge/GitHub-181717.svg?style=for-the-badge&logo=GitHub&logoColor=white)
 ![GitHub top language](https://img.shields.io/github/languages/top/AsHfIEXE/dotify?style=for-the-badge)
 ![GitHub Downloads](https://img.shields.io/github/downloads/AsHfIEXE/dotify/total?style=for-the-badge&logo=GitHub&logoColor=white)
