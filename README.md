@@ -5,7 +5,7 @@
 ![GitHub top language](https://img.shields.io/github/languages/top/AsHfIEXE/dotify?style=for-the-badge)
 ![GitHub Downloads](https://img.shields.io/github/downloads/AsHfIEXE/dotify/total?style=for-the-badge&logo=GitHub&logoColor=white)
 ![GitHub last commit](https://img.shields.io/github/last-commit/AsHfIEXE/dotify/main?style=for-the-badge)
-![GitHub Repo stars](https://img.shields.io/github/stars/AsHfIEXE/dotify?style=for-the-badge)
+![GitHub Repo stars](https://img.shields.io/github/stars/AsHfIEXE/dotify?style=for-the-badge&cacheSeconds=60)
 ![PyPI Version](https://img.shields.io/pypi/v/dotify?style=for-the-badge&logo=PyPI&logoColor=white)
 ![Python Version](https://img.shields.io/pypi/pyversions/dotify?style=for-the-badge&logo=Python&logoColor=white)
 ![License](https://img.shields.io/github/license/AsHfIEXE/dotify?style=for-the-badge)
