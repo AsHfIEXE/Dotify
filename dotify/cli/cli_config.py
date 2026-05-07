@@ -13,6 +13,7 @@ from ..downloader.base import SpotifyBaseDownloader
 from ..downloader.downloader import SpotifyDownloader
 from ..downloader.enums import AudioDownloadMode, AudioRemuxMode, VideoRemuxMode
 from ..downloader.video import SpotifyVideoDownloader
+from ..env.paths import DotifyPaths
 from ..interface.audio import SpotifyAudioInterface
 from ..interface.base import SpotifyBaseInterface
 from ..interface.enums import (
@@ -39,10 +40,21 @@ video_downloader_sig = inspect.signature(SpotifyVideoDownloader.__init__)
 audio_downloader_sig = inspect.signature(SpotifyAudioDownloader.__init__)
 downloader_sig = inspect.signature(SpotifyDownloader.__init__)
 
+_dotify_paths = DotifyPaths()
+
 
 @dataclass
 class CliConfig:
     # CLI specific options
+    skip_preflight: Annotated[
+        bool,
+        option(
+            "--skip-preflight",
+            help="Skip preflight environment checks",
+            is_flag=True,
+            default=False,
+        ),
+    ]
     urls: Annotated[
         list[str],
         argument(
@@ -72,7 +84,7 @@ class CliConfig:
         option(
             "--config-path",
             help="Config file path",
-            default=str(Path.home() / ".dotify" / "config.ini"),
+            default=str(_dotify_paths.config_file),
             type=click.Path(
                 file_okay=True,
                 dir_okay=False,
@@ -142,7 +154,7 @@ class CliConfig:
             "--cookies-path",
             "-c",
             help="Cookies file path",
-            default=api_from_cookies_sig.parameters["cookies_path"].default,
+            default=str(_dotify_paths.default_cookies_path),
             type=click.Path(
                 file_okay=True,
                 dir_okay=False,
@@ -166,7 +178,7 @@ class CliConfig:
         option(
             "--wvd-path",
             help=".wvd file path",
-            default=base_interface_sig.parameters["wvd_path"].default,
+            default=str(_dotify_paths.default_wvd_path),
             type=click.Path(
                 file_okay=True,
                 dir_okay=False,

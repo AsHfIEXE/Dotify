@@ -32,7 +32,7 @@ from .constants import (
 )
 from .device_flow import SpotifyDeviceFlow
 from .enums import SessionType
-from .exceptions import DotifyRequestException
+from .exceptions import DotifyRequestException, DotifyAuthenticationException
 from .proto.extendedmetadata_pb2 import BatchedEntityRequest, BatchedExtensionResponse
 from .proto.playplay_pb2 import PlayPlayLicenseRequest, PlayPlayLicenseResponse
 from .totp import Totp
@@ -89,7 +89,7 @@ class SpotifyApi:
         cookies = cls._parse_cookies(cookies_path)
         sp_dc = cookies.get("sp_dc")
         if sp_dc is None:
-            raise ValueError(
+            raise DotifyAuthenticationException(
                 "'sp_dc' cookie not found in cookies. "
                 "Make sure you have exported the cookies "
                 "from the Spotify homepage and are logged in."

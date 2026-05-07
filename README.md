@@ -1,215 +1,488 @@
-  
-![](https://img.shields.io/badge/GitHub-181717.svg?style=for-the-badge&logo=GitHub&logoColor=white)![GitHub top language](https://img.shields.io/github/languages/top/AsHfIEXE/dotify?style=for-the-badge)
- ![GitHub Downloads )](https://img.shields.io/github/downloads/ashfiexe/dotify/total?style=for-the-badge&logo=GitHub&logoColor=white) ![](https://img.shields.io/github/last-commit/AsHfIEXE/dotify/main?display_timestamp=author&style=for-the-badge) ![GitHub Repo stars](https://img.shields.io/github/stars/ashfiexe/dotify?style=for-the-badge)![GitHub Discussions](https://img.shields.io/github/discussions/AsHfIEXE/dotify?style=for-the-badge)![PyPI Version](https://img.shields.io/pypi/v/dotify?style=for-the-badge&logo=GitHub&logoColor=white)
-![Python Version](https://img.shields.io/pypi/pyversions/dotify?style=for-the-badge&logo=GitHub&logoColor=white)
-![License](https://img.shields.io/github/license/AsHfIEXE/Dotify?style=for-the-badge&logo=GitHub&logoColor=white)
-![GitHub stars](https://img.shields.io/github/stars/AsHfIEXE/Dotify?style=for-the-badge&logo=GitHub&logoColor=white)
- 
+<div align="center">
 
-# Dotify - Spotify Music Downloader 🎵
+  ![GitHub](https://img.shields.io/badge/GitHub-181717.svg?style=for-the-badge&logo=GitHub&logoColor=white)
+  ![GitHub top language](https://img.shields.io/github/languages/top/AsHfIEXE/dotify?style=for-the-badge)
+  ![GitHub Downloads](https://img.shields.io/github/downloads/ashfiexe/dotify/total?style=for-the-badge&logo=GitHub&logoColor=white)
+  ![GitHub last commit](https://img.shields.io/github/last-commit/AsHfIEXE/dotify/main?style=for-the-badge)
+  ![GitHub Repo stars](https://img.shields.io/github/stars/AsHfIEXE/dotify?style=for-the-badge)
+  ![PyPI Version](https://img.shields.io/pypi/v/dotify?style=for-the-badge&logo=PyPI&logoColor=white)
+  ![Python Version](https://img.shields.io/pypi/pyversions/dotify?style=for-the-badge&logo=Python&logoColor=white)
+  ![License](https://img.shields.io/github/license/AsHfIEXE/Dotify?style=for-the-badge)
 
-A powerful, command-line tool for downloading your favorite content—including songs, podcasts, and music videos—directly from Spotify.
+  # 🎵 Dotify - Spotify Music Downloader
 
-## Features
+  **A powerful, self-aware CLI tool for downloading songs, podcasts, and videos from Spotify**
 
-*   **Songs**: Download songs in AAC 128kbps or in AAC 256kbps with an active premium subscription.
-*   **Podcasts**: Download podcasts in Vorbis or AAC.
-*   **Videos**: Download podcast videos and music videos with an active premium subscription.
-*   **Synced Lyrics**: Download synced lyrics in `.lrc` format.
-*   **Artist Support**: Download an entire discography by providing the artist's URL.
-*   **Highly Customizable**: Extensive configuration options for advanced users.
+  [Installation](#-installation) • [Quick Start](#-quick-start) • [Features](#-features) • [Documentation](#-documentation)
 
-## Prerequisites
+</div>
 
-*   **Python 3.10** or higher installed on your system.
-*   The **cookies file** of your Spotify browser session in Netscape format.
-    *   **Firefox**: Use the [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/) extension.
-    *   **Chromium-based Browsers**: Use the [Get cookies.txt LOCALLY](https://chrome.google.com/webstore/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) extension.
-*   **FFmpeg** on your system `PATH`.
-    *   **Windows**: Download from [AnimMouse's FFmpeg Builds](https://www.animemusic.info/2024/02/ffmpeg-builds-static-shared.html).
-    *   **Linux**: Download from [John Van Sickle's FFmpeg Builds](https://johnvansickle.com/ffmpeg/).
-*   A **`.wvd` file**.
-    *   A `.wvd` file contains Widevine keys from a device and is required to decrypt music videos and songs in AAC. The easiest method to obtain one is using [KeyDive](https://github.com/hyugogirubato/KeyDive), which extracts it from an Android device. `.wvd` files from emulated devices may not work.
+---
 
-### Notes
+## ✨ Features
 
-*   **Warning**: Some users have reported that Spotify suspended their accounts after using similar tools. Use it at your own risk.
-*   The `.wvd` file is not required if you only plan on downloading podcasts. You can skip this prerequisite by using the `--disable-wvd` option.
-*   FFmpeg is not required for downloading podcasts in Vorbis, but it is necessary for downloading podcasts in AAC.
+### 🎧 Content Support
+- **🎵 Songs** - Download in AAC 128kbps or AAC 256kbps (Premium)
+- **📻 Podcasts** - Download in Vorbis or AAC format
+- **🎬 Videos** - Download music videos and podcast videos (Premium)
+- **📝 Lyrics** - Download synced lyrics in `.lrc` format
+- **👨‍🎤 Artists** - Download entire discographies
+- **📚 Playlists** - Download complete playlists with metadata
 
-### Optional Dependencies
+### 🛠️ Smart Environment Management
+- **🔧 Auto Setup** - One-command environment preparation
+- **🩺 Health Checks** - Comprehensive system diagnostics
+- **🔍 Error Detection** - Clear, actionable error messages
+- **📋 Configuration** - Automated config file management
+- **🎯 Preflight Validation** - Checks before every operation
 
-The following tools are optional but required for specific features. Add them to your system's `PATH` or specify their paths using command-line arguments or the config file.
+### 🎨 Advanced Features
+- **🏷️ Metadata** - Complete tag preservation and customization
+- **📁 Organization** - Flexible folder/file naming templates
+- **⚡ Performance** - Multiple download modes (ytdlp, aria2c)
+- **🔄 Remuxing** - Support for FFmpeg, MP4Box, mp4decrypt
+- **📊 Quality Control** - Multiple audio quality options
 
-*   **MP4Box**: Required when setting `mp4box` as the remux mode.
-*   **Shaka Packager**: Required when setting `webm` as the video format.
-*   **mp4decrypt**: Required when setting `mp4box` or `mp4decrypt` as the remux mode for audio.
-*   **aria2c**: Required when setting `aria2c` as the download mode.
+---
 
-## Quick Setup (one-time)
+## 🚀 Quick Start
 
-1.  **Install Dotify:**
-    ```bash
-    pip install dotify-cli
-    ```
-2.  **Install FFmpeg** and add it to your system `PATH`:
-    *   **Windows**: Download from [AnimMouse's FFmpeg Builds](https://www.animemusic.info/2024/02/ffmpeg-builds-static-shared.html).
-    *   **Linux**: Download from [John Van Sickle's FFmpeg Builds](https://johnvansickle.com/ffmpeg/).
-3.  **Get your Spotify cookies:**
-    *   Install the [Get cookies.txt LOCALLY](https://chrome.google.com/webstore/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc) Chrome extension (or [Export Cookies](https://addons.mozilla.org/en-US/firefox/addon/export-cookies-txt/) for Firefox).
-    *   Go to `open.spotify.com`, log in, then export cookies.
-    *   Save the file as `cookies.txt` in the folder where you'll run Dotify.
-    *   Alternatively, specify the path using the `--cookies-path` argument.
-4.  **Get a `.wvd` file** (needed for song decryption):
-    *   Obtain one using [KeyDive](https://github.com/hyugogirubato/KeyDive) from an Android device.
-    *   Save it as `device.wvd` in the same folder.
-    *   Alternatively, specify the path using the `--wvd-path` argument.
+### Prerequisites
 
-## Installation
-   
-1.  Install the package `dotify` using pip:
-    ```bash
-    pip install dotify-cli
-    ```
-2.  Set up the cookies file.
-    *   Move the cookies file to the directory where you'll run Dotify and rename it to `cookies.txt`.
-    *   Alternatively, specify the path using the `--cookies-path` argument.
-3.  Set up the `.wvd` file.
-    *   Move the `.wvd` file to the directory where you'll run Dotify and rename it to `device.wvd`.
-    *   Alternatively, specify the path using the `--wvd-path` argument.
+- **Python 3.10+** installed
+- **FFmpeg** in system PATH
+- **Spotify cookies** (Netscape format)
+- **Widevine key** (`.wvd` file) for AAC decryption
 
-## Usage
-
-Run Dotify with the following command:
+### Installation
 
 ```bash
-dotify [OPTIONS] URLS...
+# Install Dotify
+pip install dotify-cli
+
+# Run automatic setup
+dotify env setup
+
+# Verify your environment
+dotify env doctor
 ```
 
-### Supported URL Types
+### First-Time Setup
 
-*   Song
-*   Album
-*   Playlist
-*   Podcast Episode
-*   Podcast Show
-*   Artist
-
-### Examples
-
-**Download a song**
 ```bash
+# 1. Create placeholder files for reference
+dotify env setup --create-placeholders
+
+# 2. Get your Spotify cookies
+#    - Install "Get cookies.txt LOCALLY" extension
+#    - Go to open.spotify.com and log in
+#    - Export cookies to ~/.dotify/cookies.txt
+
+# 3. Get your Widevine key (for AAC decryption)
+#    - Use KeyDive on an Android device
+#    - Extract device.wvd
+#    - Place it in ~/.dotify/keys/device.wvd
+
+# 4. Verify everything is ready
+dotify env doctor
+```
+
+### Download Your First Track
+
+```bash
+# Download a single track
 dotify "https://open.spotify.com/track/18gqCQzqYb0zvurQPlRkpo"
-```
 
-**Download an album**
-```bash
+# Download an entire album
 dotify "https://open.spotify.com/album/0r8D5N674HbTXlR3zNxeU1"
+
+# Download a playlist
+dotify "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
 ```
 
-**List and select a related music video to download from a song**
+---
+
+## 📚 Environment Commands
+
+Dotify includes powerful environment management tools:
+
+### 🔧 Setup
+
 ```bash
-dotify "https://open.spotify.com/track/0a0n6u6j3t6m0p4k0t0k0u0" --download-music-videos
+dotify env setup
 ```
 
-**Download a podcast video**
+Automatically creates:
+- Configuration directory (`~/.dotify/`)
+- Keys directory (`~/.dotify/keys/`)
+- Temp directory (`~/.dotify/temp/`)
+- Logs directory (`~/.dotify/logs/`)
+- Default configuration file
+
+**Options:**
+- `--create-placeholders` - Create example files for cookies and WVD
+
+### 🩺 Doctor
+
 ```bash
-dotify "https://open.spotify.com/episode/3kwxWnzGH8T6UY2Nq582zx" --download-podcast-videos
+dotify env doctor
 ```
 
-**Choose which albums to download from an artist**
+Comprehensive health check that verifies:
+- ✅ Configuration directory
+- ✅ Cookies file
+- ✅ Widevine key
+- ✅ FFmpeg installation
+- ✅ Python version
+- ✅ Optional dependencies
+
+**Options:**
+- `--verbose` - Show detailed output including optional checks
+- `--json` - Output results in JSON format
+
+### 📁 Paths
+
 ```bash
-dotify "https://open.spotify.com/artist/0gxyHStUsqpMadRV0Di1Qt"
+dotify env paths
 ```
-*Interactive prompt controls:*
-*   **Arrow keys**: Move selection
-*   **Space**: Toggle selection
-*   **Ctrl + A**: Select all
-*   **Enter**: Confirm selection
 
-## Configuration
+Displays all Dotify-related paths:
+- Config directory and file
+- Keys directory
+- Default cookies and WVD paths
+- Temp and logs directories
+- Database file location
 
-Dotify can be configured using command-line arguments or a config file.
+### 🔍 Check
 
-The config file is created automatically when you run Dotify for the first time at `~/.dotify/config.json` on Linux and `%USERPROFILE%\.dotify\config.json` on Windows.
+```bash
+dotify env check [check_name]
+```
 
-Config file values can be overridden using command-line arguments.
+Run specific health checks:
+- `config` - Configuration directory
+- `cookies` - Cookies file
+- `wvd` - Widevine key
+- `ffmpeg` - FFmpeg installation
+- `python` - Python version
 
-| Command-line argument / Config file key | Description                                                   | Default value             |
-| --------------------------------------- | ------------------------------------------------------------- | ------------------------- |
-| `--wait-interval`, `-w` / `wait_interval` | Wait interval between downloads in seconds.                   | `5`                       |
-| `--disable-wvd` / `disable_wvd`         | Disable Widevine decryption.                                  | `false`                   |
-| `--download-music-videos` / `download_music_videos` | List and select a related music video to download from songs. | `false`                   |
-| `--download-podcast-videos` / `download_podcast_videos` | Attempt to download the video version of podcasts.            | `false`                   |
-| `--force-premium`, `-f` / `force_premium` | Force to detect the account as premium.                       | `false`                   |
-| `--read-urls-as-txt`, `-r` / -          | Interpret URLs as paths to text files containing URLs.        | `false`                   |
-| `--config-path` / -                     | Path to config file.                                          | `<home>/.dotify/config.json` |
-| `--log-level` / `log_level`             | Log level.                                                    | `INFO`                    |
-| `--no-exceptions` / `no_exceptions`     | Don't print exceptions.                                       | `false`                   |
-| `--cookies-path` / `cookies_path`       | Path to cookies file.                                         | `cookies.txt`             |
-| `--output-path`, `-o` / `output_path`   | Path to output directory.                                     | `Spotify`                 |
-| `--temp-path` / `temp_path`             | Path to temporary directory.                                  | `temp`                    |
-| `--wvd-path` / `wvd_path`               | Path to .wvd file.                                            | `device.wvd`              |
-| `--aria2c-path` / `aria2c_path`         | Path to aria2c binary.                                        | `aria2c`                  |
-| `--ffmpeg-path` / `ffmpeg_path`         | Path to ffmpeg binary.                                        | `ffmpeg`                  |
-| `--mp4box-path` / `mp4box_path`         | Path to MP4Box binary.                                        | `mp4box`                  |
-| `--mp4decrypt-path` / `mp4decrypt_path` | Path to mp4decrypt binary.                                    | `mp4decrypt`              |
-| `--packager-path` / `packager_path`     | Path to Shaka Packager binary.                                | `packager`                |
-| `--template-folder-album` / `template_folder_album` | Template folder for tracks that are part of an album.       | `{album_artist}/{album}`  |
-| `--template-folder-compilation` / `template_folder_compilation` | Template folder for tracks that are part of a compilation album. | `Compilations/{album}`    |
-| `--template-file-single-disc` / `template_file_single_disc` | Template file for tracks on a single-disc album.        | `{track:02d} {title}`     |
-| `--template-file-multi-disc` / `template_file_multi_disc` | Template file for tracks on a multi-disc album.         | `{disc}-{track:02d} {title}` |
-| `--template-folder-episode` / `template_folder_episode` | Template folder for podcast episodes.                     | `Podcasts/{album}`        |
-| `--template-file-episode` / `template_file_episode` | Template file for music videos.                               | `{track:02d} {title}`     |
-| `--template-folder-music-video` / `template_folder_music_video` | Template folder for music videos.                         | `{artist}/Unknown Album`  |
-| `--template-file-music-video` / `template_file_music_video` | Template file for tracks not part of an album.            | `{title}`                 |
-| `--template-file-playlist` / `template_file_playlist` | Template file for the M3U8 playlist.                        | `Playlists/{playlist_artist}/{playlist_title}` |
-| `--date-tag-template` / `date_tag_template` | Date tag template.                                          | `%Y-%m-%dT%H:%M:%SZ`      |
-| `--cover-size` / `cover_size`           | Cover size.                                                   | `extra-large`             |
-| `--save-cover` / `save_cover`           | Save cover as a separate file.                                | `false`                   |
-| `--save-playlist` / `save_playlist`     | Save a M3U8 playlist file when downloading a playlist.        | `false`                   |
-| `--overwrite` / `overwrite`             | Overwrite existing files.                                     | `false`                   |
-| `--exclude-tags` / `exclude_tags`       | Comma-separated tags to exclude.                              | `null`                    |
-| `--truncate` / `truncate`               | Maximum length of the file/folder names.                      | `null`                    |
-| `--audio-quality`, `-a` / `audio_quality` | Audio quality for songs and podcasts.                         | `aac-medium`              |
-| `--download-mode`, `-d` / `download_mode` | Download mode for songs and podcasts.                         | `ytdlp`                   |
-| `--remux-mode-audio` / `remux_mode_audio` | Remux mode for songs and podcasts.                            | `ffmpeg`                  |
-| `--lrc-only`, `-l` / `lrc_only`         | Download only the synced lyrics.                              | `false`                   |
-| `--no-lrc` / `no_lrc`                   | Don't download the synced lyrics.                             | `false`                   |
-| `--video-format` / `video_format`       | Video format.                                                 | `mp4`                     |
-| `--remux-mode-video` / `remux_mode_video` | Remux mode for videos.                                      | `ffmpeg`                  |
-| `--dry-run` / `dry_run`                 | Simulate the process without downloading any files.           | `false`                   |
-| `--no-config-file`, `-n` / -            | Do not use a config file.                                     | `false`                   |
+---
 
-### Tag Variables
-The following variables can be used in the template folder/file and/or in the `exclude_tags` list:
+## 🎯 Usage Examples
 
-`album`, `album_artist`, `artist`, `compilation`, `composer`, `copyright`, `cover`, `disc`, `disc_total`, `isrc`, `label`, `lyrics`, `media_type`, `playlist_artist`, `playlist_title`, `playlist_track`, `publisher`, `producer`, `rating`, `release_date`, `release_year`, `title`, `track`, `track_total`, `url`
+### Basic Downloads
 
-### Reference
-*   **Cover Sizes**: `small` (64px), `medium` (300px), `large` (640px), `extra-large` (2000px)
-*   **Audio Qualities**: `aac-medium` (128kbps), `aac-high` (256kbps), `vorbis-high` (320kbps), `vorbis-medium` (160kbps), `vorbis-low` (96kbps)
-*   **Video Formats**: `mp4`, `webm`, `ask`
-*   **Download Modes**: `ytdlp`, `aria2c`
-*   **Remux Modes**: `ffmpeg`, `mp4box`, `mp4decrypt`
+```bash
+# Download a song
+dotify "https://open.spotify.com/track/..."
 
-## 🐛 Issues and Feedback
-Encountered a bug or have some feedback? Please [open an issue on GitHub](https://github.com/AsHfIEXE/Dotify/issues). We'd love to hear from you!
+# Download an album
+dotify "https://open.spotify.com/album/..."
 
+# Download a playlist
+dotify "https://open.spotify.com/playlist/..."
 
+# Download an artist's discography
+dotify "https://open.spotify.com/artist/..."
+```
 
-## Support
-For support, email me at `salahin0ashfi@gmail.com` or join my discord and get help : [Discord](https://discord.gg/YSv62BvCtS)
+### Advanced Options
 
-## License
-This project is licensed under the [MIT License](LICENSE).
+```bash
+# Download with custom quality
+dotify "URL" --audio-quality aac-high
 
-## Authors
-*   **@AsHfIEXE**
+# Download to specific directory
+dotify "URL" --output "/path/to/music"
 
-## License
+# Download with custom template
+dotify "URL" --album-folder-template "{artist}/{album} - {year}"
 
-MADE WITH [MIT License](https://choosealicense.com/licenses/mit/)
+# Download only lyrics
+dotify "URL" --synced-lyrics-only
 
+# Download with verbose logging
+dotify "URL" --log-level DEBUG
+```
 
+### Video Downloads
 
+```bash
+# Download music video
+dotify "URL" --download-music-videos
+
+# Download podcast video
+dotify "URL" --download-podcast-videos
+
+# Choose video format
+dotify "URL" --video-format webm
+```
+
+### Batch Operations
+
+```bash
+# Download from text file
+dotify --read-urls-as-txt urls.txt
+
+# Download multiple URLs
+dotify "URL1" "URL2" "URL3"
+
+# Download with custom wait interval
+dotify "URL" --wait-interval 10
+```
+
+---
+
+## ⚙️ Configuration
+
+### Config File Location
+
+- **Linux/macOS**: `~/.dotify/config.ini`
+- **Windows**: `%USERPROFILE%\.dotify\config.ini`
+
+### Common Configuration Options
+
+| Option | Description | Default |
+|--------|-------------|---------|
+| `cookies_path` | Path to cookies file | `~/.dotify/cookies.txt` |
+| `wvd_path` | Path to Widevine key | `~/.dotify/keys/device.wvd` |
+| `output_path` | Output directory | `Spotify` |
+| `audio_quality` | Audio quality priority | `aac-medium` |
+| `wait_interval` | Wait between downloads (seconds) | `5` |
+| `log_level` | Logging level | `INFO` |
+
+### Template Variables
+
+Customize your file organization with these variables:
+
+- **Album**: `{album}`, `{album_artist}`, `{year}`, `{label}`
+- **Track**: `{title}`, `{track}`, `{disc}`, `{artist}`
+- **Metadata**: `{isrc}`, `{composer}`, `{copyright}`, `{genre}`
+- **Playlist**: `{playlist_title}`, `{playlist_artist}`, `{playlist_track}`
+
+### Example Templates
+
+```ini
+# Album organization
+album_folder_template = {album_artist}/{album} [{year}]
+single_disc_file_template = {track:02d} - {title}
+multi_disc_file_template = {disc}-{track:02d} - {title}
+
+# Podcast organization
+podcast_folder_template = Podcasts/{album}
+podcast_file_template = {track:02d} - {title}
+
+# Playlist organization
+playlist_file_template = Playlists/{playlist_artist}/{playlist_title}
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Common Issues
+
+#### ❌ "Cookies file not found"
+
+**Solution:**
+```bash
+# Check where Dotify expects cookies
+dotify env paths
+
+# Verify cookies file exists
+ls ~/.dotify/cookies.txt
+
+# Run diagnostics
+dotify env doctor
+```
+
+#### ❌ "Widevine key not found"
+
+**Solution:**
+```bash
+# Check WVD location
+dotify env check wvd
+
+# For Vorbis downloads (no WVD needed)
+dotify "URL" --disable-wvd
+```
+
+#### ❌ "FFmpeg not found"
+
+**Solution:**
+```bash
+# Check FFmpeg installation
+dotify env check ffmpeg
+
+# Install FFmpeg:
+# Windows: https://www.animemusic.info/2024/02/ffmpeg-builds-static-shared.html
+# Linux: https://johnvansickle.com/ffmpeg/
+```
+
+#### ❌ "Authentication failed"
+
+**Solution:**
+```bash
+# Export fresh cookies from open.spotify.com
+# Replace old cookies.txt
+dotify env doctor
+```
+
+### Getting Help
+
+```bash
+# Full diagnostic
+dotify env doctor --verbose
+
+# JSON output for automation
+dotify env doctor --json
+
+# Check specific component
+dotify env check ffmpeg
+
+# View all paths
+dotify env paths
+```
+
+---
+
+## 📖 Advanced Usage
+
+### Preflight Checks
+
+Dotify automatically runs preflight checks before downloads:
+
+```bash
+# Automatic checks (default)
+dotify "URL"
+
+# Skip preflight checks (advanced users)
+dotify "URL" --skip-preflight
+```
+
+### Error Handling
+
+Dotify provides helpful error messages with fix suggestions:
+
+```bash
+# Example error output:
+# [X] Cookies File: Cookies file not found
+#   Fix: Place cookies.txt in ~/.dotify or use --cookies-path
+#
+# Run 'dotify env doctor' for details
+```
+
+### Quality Options
+
+```bash
+# AAC qualities (Premium)
+--audio-quality aac-medium    # 128kbps
+--audio-quality aac-high      # 256kbps
+
+# Vorbis qualities
+--audio-quality vorbis-high   # 320kbps
+--audio-quality vorbis-medium # 160kbps
+--audio-quality vorbis-low    # 96kbps
+```
+
+### Download Modes
+
+```bash
+# ytdlp (default)
+--download-mode ytdlp
+
+# aria2c (faster, requires aria2c)
+--download-mode aria2c
+```
+
+### Remux Modes
+
+```bash
+# FFmpeg (default)
+--audio-remux-mode ffmpeg
+--video-remux-mode ffmpeg
+
+# MP4Box
+--audio-remux-mode mp4box
+
+# mp4decrypt
+--audio-remux-mode mp4decrypt
+```
+
+---
+
+## 🌟 What's New
+
+### Environment Layer (v1.9.8+)
+
+- **🔧 Auto Setup** - One-command environment preparation
+- **🩺 Health Checks** - Comprehensive system diagnostics
+- **📋 Smart Configuration** - Automated config management
+- **🎯 Preflight Validation** - Checks before every operation
+- **💡 Better Errors** - Clear, actionable error messages
+- **📁 Path Management** - Centralized path handling
+
+### Key Improvements
+
+- **Self-Aware** - Dotify knows its own structure and requirements
+- **User-Friendly** - Clear guidance for setup and troubleshooting
+- **Professional** - Production-ready error handling and diagnostics
+- **Maintainable** - Clean separation of concerns
+
+---
+
+## 📊 Supported Content
+
+| Type | Formats | Quality | Notes |
+|------|---------|---------|-------|
+| **Songs** | AAC, Vorbis | 96-320kbps | AAC requires Premium + WVD |
+| **Podcasts** | AAC, Vorbis | 96-320kbps | Vorbis works without Premium |
+| **Music Videos** | MP4, WebM | Up to 1080p | Requires Premium |
+| **Podcast Videos** | MP4, WebM | Up to 1080p | Requires Premium |
+| **Lyrics** | LRC | Synced | Automatic with tracks |
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
+
+---
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 🙏 Acknowledgments
+
+- **Spotify** for the amazing music platform
+- **KeyDive** for Widevine key extraction
+- **yt-dlp** for download functionality
+- **FFmpeg** for media processing
+- All contributors and users of Dotify
+
+---
+
+## 📞 Support
+
+- **Email**: salahin0ashfi@gmail.com
+- **Discord**: [Join our Discord](https://discord.gg/YSv62BvCtS)
+- **Issues**: [Report bugs on GitHub](https://github.com/AsHfIEXE/Dotify/issues)
+
+---
+
+<div align="center">
+
+  **⭐ If you find this project helpful, consider giving it a star! ⭐**
+
+  Made with ❤️ by [@AsHfIEXE](https://github.com/AsHfIEXE)
+
+</div>

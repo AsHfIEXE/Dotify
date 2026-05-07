@@ -1,7 +1,7 @@
 [project]
 name = "dotify-cli"
-version = "1.9.8"
-description = "A command-line app for downloading songs, podcasts and videos from Spotify."
+version = "2.0.0"
+description = "A command-line app for downloading songs, podcasts and videos from Spotify with smart environment management."
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"

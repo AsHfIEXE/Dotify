@@ -19,6 +19,7 @@ from ..interface.interface import SpotifyInterface
 from ..interface.types import MediaTags, PlaylistTags
 from ..utils import CustomStringFormatter
 from .constants import ILLEGAL_CHAR_REPLACEMENT, ILLEGAL_CHARS_RE, TEMP_PATH_TEMPLATE
+from .exceptions import DotifyDependencyNotFound
 
 logger = logging.getLogger(__name__)
 
@@ -91,6 +92,12 @@ class SpotifyBaseDownloader:
         self.mp4box_full_path = shutil.which(self.mp4box_path)
         self.mp4decrypt_full_path = shutil.which(self.mp4decrypt_path)
         self.shaka_packager_full_path = shutil.which(self.shaka_packager_path)
+
+        if not self.ffmpeg_full_path:
+            logger.warning(
+                "FFmpeg not found in PATH. Some features may not work. "
+                "Run 'dotify doctor' to check your environment."
+            )
 
     def sanitize_string(
         self,
