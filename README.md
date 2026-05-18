@@ -435,15 +435,19 @@ Dotify provides helpful error messages with fix suggestions:
 
 ## 📊 Supported Content
 
-| Type | Formats | Quality | Notes |
-|------|---------|---------|-------|
-| **Songs** | AAC, Vorbis | 96-320kbps | AAC requires Premium + WVD |
-| **Podcasts** | AAC, Vorbis | 96-320kbps | Vorbis works without Premium |
-| **Music Videos** | MP4, WebM | Up to 1080p | Requires Premium |
-| **Podcast Videos** | MP4, WebM | Up to 1080p | Requires Premium |
-| **Lyrics** | LRC | Synced | Automatic with tracks |
-
+| Type | Formats | Quality | Session | Notes |
+|------|---------|---------|---------|-------|
+| **Songs** | Vorbis | 96–320kbps | librespot / desktop | No extra tools needed for Vorbis |
+| **Songs** | AAC | 128–256kbps | librespot / web / desktop | Requires `.wvd` file or Spotify DLL + Premium |
+| **Songs** | FLAC | Lossless / 24-bit | librespot / web / desktop | L1-certified `.wvd` or Spotify DLL + Premium |
+| **Podcasts** | Vorbis | 96–320kbps | any | No extra tools needed |
+| **Podcasts** | AAC | 128–256kbps | any | Requires FFmpeg, MP4Box, or mp4decrypt |
+| **Music Videos** | MP4 (H.264), WebM (VP9) | Up to 1080p | librespot / web | Requires `.wvd` + FFmpeg/MP4Box + Premium |
+| **Podcast Videos** | MP4, WebM | Up to 1080p | any | Requires FFmpeg or MP4Box |
+| **Lyrics** | LRC | Synced | any | Downloaded automatically with tracks |
 ---
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ashfiexe/dotify&type=Date&theme=dark)](https://star-history.com/#ashfiexe/dotify&Date)
 
 ## 🤝 Contributing
 
