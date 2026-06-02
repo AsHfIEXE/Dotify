@@ -1,13 +1,15 @@
 <div align="center">
 
-  ![GitHub](https://img.shields.io/badge/GitHub-181717.svg?style=for-the-badge&logo=GitHub&logoColor=white)
-  ![GitHub top language](https://img.shields.io/github/languages/top/AsHfIEXE/dotify?style=for-the-badge)
-  ![GitHub Downloads](https://img.shields.io/github/downloads/ashfiexe/dotify/total?style=for-the-badge&logo=GitHub&logoColor=white)
-  ![GitHub last commit](https://img.shields.io/github/last-commit/AsHfIEXE/dotify/main?style=for-the-badge)
-  ![GitHub Repo stars](https://img.shields.io/github/stars/AsHfIEXE/dotify?style=for-the-badge)
-  ![PyPI Version](https://img.shields.io/pypi/v/dotify?style=for-the-badge&logo=PyPI&logoColor=white)
-  ![Python Version](https://img.shields.io/pypi/pyversions/dotify?style=for-the-badge&logo=Python&logoColor=white)
-  ![License](https://img.shields.io/github/license/AsHfIEXE/Dotify?style=for-the-badge)
+
+![GitHub](https://img.shields.io/badge/GitHub-181717.svg?style=for-the-badge&logo=GitHub&logoColor=white)
+![GitHub top language](https://img.shields.io/github/languages/top/AsHfIEXE/dotify?style=for-the-badge)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/dotify-cli?style=for-the-badge&color=blue&label=Downloads)](https://pypi.org/project/dotify-cli/)
+![GitHub Downloads](https://img.shields.io/github/downloads/AsHfIEXE/dotify/total?style=for-the-badge&logo=GitHub&logoColor=white)
+![GitHub last commit](https://img.shields.io/github/last-commit/AsHfIEXE/dotify/main?style=for-the-badge)
+![GitHub Repo stars](https://img.shields.io/github/stars/AsHfIEXE/dotify?style=for-the-badge&cacheSeconds=60)
+![PyPI Version](https://img.shields.io/pypi/v/dotify?style=for-the-badge&logo=PyPI&logoColor=white)
+![Python Version](https://img.shields.io/pypi/pyversions/dotify?style=for-the-badge&logo=Python&logoColor=white)
+![License](https://img.shields.io/github/license/AsHfIEXE/dotify?style=for-the-badge)
 
   # 🎵 Dotify - Spotify Music Downloader
 
@@ -435,15 +437,19 @@ Dotify provides helpful error messages with fix suggestions:
 
 ## 📊 Supported Content
 
-| Type | Formats | Quality | Notes |
-|------|---------|---------|-------|
-| **Songs** | AAC, Vorbis | 96-320kbps | AAC requires Premium + WVD |
-| **Podcasts** | AAC, Vorbis | 96-320kbps | Vorbis works without Premium |
-| **Music Videos** | MP4, WebM | Up to 1080p | Requires Premium |
-| **Podcast Videos** | MP4, WebM | Up to 1080p | Requires Premium |
-| **Lyrics** | LRC | Synced | Automatic with tracks |
-
+| Type | Formats | Quality | Session | Notes |
+|------|---------|---------|---------|-------|
+| **Songs** | Vorbis | 96–320kbps | librespot / desktop | No extra tools needed for Vorbis |
+| **Songs** | AAC | 128–256kbps | librespot / web / desktop | Requires `.wvd` file or Spotify DLL + Premium |
+| **Songs** | FLAC | Lossless / 24-bit | librespot / web / desktop | L1-certified `.wvd` or Spotify DLL + Premium |
+| **Podcasts** | Vorbis | 96–320kbps | any | No extra tools needed |
+| **Podcasts** | AAC | 128–256kbps | any | Requires FFmpeg, MP4Box, or mp4decrypt |
+| **Music Videos** | MP4 (H.264), WebM (VP9) | Up to 1080p | librespot / web | Requires `.wvd` + FFmpeg/MP4Box + Premium |
+| **Podcast Videos** | MP4, WebM | Up to 1080p | any | Requires FFmpeg or MP4Box |
+| **Lyrics** | LRC | Synced | any | Downloaded automatically with tracks |
 ---
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ashfiexe/dotify&type=Date&theme=dark)](https://star-history.com/#ashfiexe/dotify&Date)
 
 ## 🤝 Contributing
 
