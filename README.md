@@ -11,7 +11,9 @@
 
   # 🎵 Dotify - Spotify Music Downloader
 
-  **A powerful, self-aware CLI tool for downloading songs, podcasts, and videos from Spotify**
+  **A highly configurable Spotify CLI downloader for tracks, playlists, podcasts, and music videos.**  
+  **Build and manage your offline music libraries with synced lyrics, cover art, and full metadata control.**  
+  **Designed for music enthusiasts, Python developers, and automated media library workflows.**
 
   [Installation](#-installation) • [Quick Start](#-quick-start) • [Features](#-features) • [Documentation](#-documentation)
 
