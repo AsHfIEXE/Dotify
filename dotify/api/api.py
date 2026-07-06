@@ -223,6 +223,7 @@ class SpotifyApi:
                     "Falling back to Web session type..."
                 )
                 self.librespot = None
+                self.session_type = SessionType.WEB
             else:
                 raise e
 
