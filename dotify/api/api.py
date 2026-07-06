@@ -160,7 +160,7 @@ class SpotifyApi:
             await self._initialize_authorization_with_device_flow()
         elif self.session_type in {SessionType.LIBRESPOT, SessionType.WEB}:
             await self._initialize_authorization_with_totp()
-            if self.session_type == SessionType.LIBRESPOT:
+            if self.session_type == SessionType.LIBRESPOT and not getattr(self, "is_anonymous_token", False):
                 await asyncio.to_thread(self._initialize_librespot)
 
     def _set_authorization_header(
@@ -179,6 +179,7 @@ class SpotifyApi:
     async def _initialize_authorization_with_totp(self) -> None:
         self.totp = await Totp.initialize()
         session_info = await self._get_session_token()
+        self.is_anonymous_token = session_info.get("isAnonymous", False)
         client_token = await self._get_client_token(session_info["clientId"])
 
         access_token = session_info["accessToken"]
