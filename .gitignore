@@ -12,10 +12,10 @@ dist/
 build/
 
 # Virtual environments
-.venv/
-venv/
-env/
-testenv/
+/.venv/
+/venv/
+/env/
+/testenv/
 
 # Packaging / lock artifacts (keep uv.lock for reproducible installs)
 # uv.lock — intentionally tracked
