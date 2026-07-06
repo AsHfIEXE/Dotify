@@ -153,7 +153,7 @@ async def _run_download(skip_preflight: bool, config: CliConfig):
         if e.name == "librespot":
             logger.critical(
                 "The 'librespot' extra is required to use the librespot session type, "
-                "please install the package with `pip install dotify[librespot]` and try again"
+                "please install the package with `pip install dotify-cli[librespot]` and try again"
             )
             return
         raise e
