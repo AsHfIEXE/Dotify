@@ -319,7 +319,8 @@ def _run_preflight_checks(config: CliConfig) -> bool:
     paths = DotifyPaths()
     health_check = HealthCheck(paths)
 
-    results = health_check.check_all(skip_optional=True)
+    cookies_path = Path(config.cookies_path) if config.cookies_path else None
+    results = health_check.check_all(skip_optional=True, cookies_path=cookies_path)
 
     failed = [r for r in results if r.status == CheckStatus.FAIL]
     warnings = [r for r in results if r.status == CheckStatus.WARN]
