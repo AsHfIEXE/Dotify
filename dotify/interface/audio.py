@@ -62,7 +62,13 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
         skip_pssh: bool,
     ) -> StreamInfoAv:
         session_type_skipped = False
-        for audio_quality in self.audio_quality_priority:
+        priority = self.audio_quality_priority.copy()
+        if self.api.session_type == SessionType.WEB and not any(q.mp4 for q in priority):
+            if self.api.premium:
+                priority.append(AudioQuality.AAC_HIGH)
+            priority.append(AudioQuality.AAC_MEDIUM)
+
+        for audio_quality in priority:
             stream_info = None
 
             if audio_quality.mp4:
