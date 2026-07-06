@@ -212,7 +212,19 @@ class SpotifyApi:
     def _initialize_librespot(self) -> None:
         from .librespot import Librespot
 
-        self.librespot = Librespot(access_token=self._access_token)
+        try:
+            self.librespot = Librespot(access_token=self._access_token)
+        except Exception as e:
+            if "403" in str(e):
+                logger.warning(
+                    "Librespot connection failed (status 403). This usually means:\n"
+                    "  1. You are using a Free Spotify account (Librespot requires Spotify Premium)\n"
+                    "  2. Your cookies are expired or invalid\n"
+                    "Falling back to Web session type..."
+                )
+                self.librespot = None
+            else:
+                raise e
 
     async def _get_server_time(self) -> int:
         response = await self.client.get(SERVER_TIME_URL)
