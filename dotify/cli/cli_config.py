@@ -122,6 +122,7 @@ class CliConfig:
             "--no-exceptions",
             help="Don't print exceptions",
             is_flag=True,
+            default=True,
         ),
     ]
     database_path: Annotated[
