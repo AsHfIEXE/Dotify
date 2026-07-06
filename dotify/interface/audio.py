@@ -64,7 +64,7 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
         session_type_skipped = False
         priority = self.audio_quality_priority.copy()
         if self.api.session_type == SessionType.WEB and not any(q.mp4 for q in priority):
-            if self.api.premium:
+            if self.api.premium_session:
                 priority.append(AudioQuality.AAC_HIGH)
             priority.append(AudioQuality.AAC_MEDIUM)
 
