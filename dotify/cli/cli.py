@@ -81,7 +81,14 @@ def make_sync(func):
     return wrapper
 
 
-@click.group()
+class DefaultGroup(click.Group):
+    def parse_args(self, ctx, args):
+        if args and args[0] not in self.commands and args[0] not in ('-h', '--help', '-v', '--version'):
+            args.insert(0, 'download')
+        return super().parse_args(ctx, args)
+
+
+@click.group(cls=DefaultGroup)
 @click.help_option("-h", "--help")
 @click.version_option(__version__, "-v", "--version")
 def cli():

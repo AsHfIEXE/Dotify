@@ -1,6 +1,6 @@
 [project]
 name = "dotify-cli"
-version = "2.0.15"
+version = "2.0.16"
 description = "A command-line app for downloading songs, podcasts and videos from Spotify with smart environment management."
 readme = "README.md"
 license = "MIT"
@@ -27,7 +27,7 @@ dependencies = [
 repository = "https://github.com/AsHfIEXE/Dotify"
 
 [project.scripts]
-dotify = "dotify.cli.cli:main"
+dotify = "dotify.cli.cli:cli"
 
 [project.optional-dependencies]
 librespot = [
