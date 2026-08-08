@@ -117,6 +117,7 @@ def paths():
     click.echo(f"\nDefault Paths:")
     click.echo(f"Cookies:          {paths.default_cookies_path}")
     click.echo(f"Widevine Key:     {paths.default_wvd_path}")
+    click.echo(f"Librespot Auth:   {paths.librespot_credentials_path}")
     click.echo()
 
 
@@ -138,6 +139,6 @@ def check(check_name: str):
                 click.echo(f"Fix: {result.fix}\n")
         else:
             click.echo(f"\n❌ Unknown check: {check_name}")
-            click.echo("Available checks: config, cookies, wvd, ffmpeg, python\n")
+            click.echo("Available checks: config, cookies, wvd, librespot, ffmpeg, python\n")
     else:
         doctor.print_diagnosis(verbose=False)

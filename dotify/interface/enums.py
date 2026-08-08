@@ -103,6 +103,20 @@ class AudioQuality(Enum):
     def format_name(self) -> str | None:
         return FORMAT_NAME_MAP.get(self.value)
 
+    @property
+    def display_name(self) -> str:
+        return {
+            "vorbis-low": "Vorbis 96 kbps / OGG",
+            "vorbis-medium": "Vorbis 160 kbps / OGG",
+            "vorbis-high": "Vorbis 320 kbps / OGG",
+            "aac-medium": "AAC 128 kbps / M4A",
+            "aac-high": "AAC 256 kbps / M4A",
+            "flac-flac": "FLAC lossless",
+            "flac-mp4": "FLAC lossless / MP4 source",
+            "flac-flac-24": "FLAC 24-bit lossless",
+            "flac-mp4-24": "FLAC 24-bit lossless / MP4 source",
+        }[self.value]
+
 
 class VideoFormat(Enum):
     MP4 = "mp4"

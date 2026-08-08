@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import AsyncGenerator
 
 from ..interface.enums import AutoMediaOption, MediaType
+from ..interface.types import SpotifyMedia
 from .audio import SpotifyAudioDownloader
 from .base import SpotifyBaseDownloader
 from .constants import TEMP_PATH_TEMPLATE
@@ -56,20 +57,50 @@ class SpotifyDownloader:
         auto_media_option: AutoMediaOption | None = None,
     ) -> AsyncGenerator[DownloadItem, None]:
         async for media in self.base.interface.get_media(url, auto_media_option):
-            if media.error:
-                yield DownloadItem(media)
+            item = self.parse_media(media)
+            if item is not None:
+                yield item
 
-            elif media.tags.media_type in {
-                MediaType.SONG,
-                MediaType.PODCAST,
-            }:
-                yield self.audio.parse_item(media)
+    def parse_media(self, media: SpotifyMedia) -> DownloadItem | None:
+        """Convert enriched media into a concrete download item."""
 
-            elif media.tags.media_type in {
-                MediaType.MUSIC_VIDEO,
-                MediaType.PODCAST_VIDEO,
-            }:
-                yield self.video.parse_item(media)
+        if media.error:
+            return DownloadItem(media)
+
+        if media.tags.media_type in {
+            MediaType.SONG,
+            MediaType.PODCAST,
+        }:
+            return self.audio.parse_item(media)
+
+        if media.tags.media_type in {
+            MediaType.MUSIC_VIDEO,
+            MediaType.PODCAST_VIDEO,
+        }:
+            return self.video.parse_item(media)
+
+        return None
+
+    def _raise_if_existing(self, item: DownloadItem) -> None:
+        if self.overwrite:
+            return
+        candidates = item.candidate_final_paths or (item.final_path,)
+        existing = next((path for path in candidates if path and Path(path).exists()), None)
+        if existing:
+            item.final_path = existing
+            raise DotifyMediaFileExists(existing)
+
+    async def prepare(self, item: DownloadItem) -> None:
+        """Skip existing output before resolving deferred streams and licenses."""
+
+        if item.media.error:
+            raise item.media.error
+        self._raise_if_existing(item)
+        await item.media.ensure_stream()
+
+        if item.media.tags.media_type in {MediaType.SONG, MediaType.PODCAST}:
+            self.audio.update_item_paths(item)
+        self._raise_if_existing(item)
 
     async def download(self, item: DownloadItem) -> None:
         try:

@@ -39,3 +39,6 @@ config.json
 
 # Spotify DLL (key emulation)
 *.dll
+
+#Download Folder
+Spotify

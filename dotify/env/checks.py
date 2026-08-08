@@ -1,8 +1,13 @@
+from __future__ import annotations
+
 import shutil
 from dataclasses import dataclass
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from .paths import DotifyPaths
 
 
 class CheckStatus(Enum):
@@ -39,17 +44,23 @@ class CheckResult:
 class HealthCheck:
     """Health check system for Dotify environment."""
 
-    def __init__(self, paths: "DotifyPaths") -> None:
+    def __init__(self, paths: DotifyPaths) -> None:
         self.paths = paths
         self.results: list[CheckResult] = []
 
-    def check_all(self, skip_optional: bool = False, cookies_path: Optional[Path] = None) -> list[CheckResult]:
+    def check_all(
+        self,
+        skip_optional: bool = False,
+        cookies_path: Optional[Path] = None,
+        wvd_path: Optional[Path] = None,
+    ) -> list[CheckResult]:
         """Run all health checks."""
         self.results = []
 
         self.check_config_dir()
         self.check_cookies_file(override_path=cookies_path)
-        self.check_wvd_file()
+        self.check_wvd_file(override_path=wvd_path)
+        self.check_librespot_credentials()
         self.check_ffmpeg()
         self.check_python_version()
 
@@ -109,11 +120,11 @@ class HealthCheck:
         self.results.append(result)
         return result
 
-    def check_wvd_file(self) -> CheckResult:
+    def check_wvd_file(self, override_path: Optional[Path] = None) -> CheckResult:
         """Check if Widevine key file exists."""
-        wvd_path = self.paths.default_wvd_path
+        wvd_path = override_path or self.paths.default_wvd_path
 
-        if wvd_path.exists():
+        if wvd_path.is_file():
             result = CheckResult(
                 name="Widevine Key",
                 status=CheckStatus.PASS,
@@ -127,6 +138,29 @@ class HealthCheck:
                 message="Widevine key file not found",
                 fix=f"Place device.wvd in {self.paths.keys_dir} or use --wvd-path (required for AAC decryption)",
                 path=wvd_path,
+            )
+
+        self.results.append(result)
+        return result
+
+    def check_librespot_credentials(self) -> CheckResult:
+        """Check whether the optional Librespot OAuth credentials exist."""
+
+        credentials_path = self.paths.librespot_credentials_path
+        if credentials_path.is_file():
+            result = CheckResult(
+                name="Librespot Credentials",
+                status=CheckStatus.PASS,
+                message="Reusable Librespot credentials found",
+                path=credentials_path,
+            )
+        else:
+            result = CheckResult(
+                name="Librespot Credentials",
+                status=CheckStatus.WARN,
+                message="Librespot has not been authorized",
+                fix="Run 'dotify auth librespot' before using the librespot session",
+                path=credentials_path,
             )
 
         self.results.append(result)

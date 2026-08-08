@@ -17,6 +17,7 @@ from ..api.proto.playplay_pb2 import ContentType, Interactivity, PlayPlayLicense
 from .base import SpotifyBaseInterface
 from .enums import AudioQuality
 from .exceptions import (
+    DotifyLibrespotAudioKeyException,
     DotifyMediaFormatNotAvailableException,
     DotifyMediaFormatNotAvailableForSessionTypeException,
     DotifyNoKeyEmuException,
@@ -26,15 +27,27 @@ from .types import DecryptionKey, StreamInfo, StreamInfoAv
 logger = logging.getLogger(__name__)
 
 
+class _LibrespotAudioKeyNoiseFilter(logging.Filter):
+    """Hide pyfreedom's duplicate raw key-error lines; Dotify reports one error."""
+
+    def filter(self, record: logging.LogRecord) -> bool:
+        return not record.getMessage().startswith("Audio key error, code:")
+
+
+_LIBRESPOT_AUDIO_KEY_NOISE_FILTER = _LibrespotAudioKeyNoiseFilter()
+
+
 class SpotifyAudioInterface(SpotifyBaseInterface):
     def __init__(
         self,
         base: SpotifyBaseInterface,
-        audio_quality_priority: list[AudioQuality] = [AudioQuality.VORBIS_MEDIUM],
+        audio_quality_priority: list[AudioQuality] | None = None,
+        strict_audio_quality: bool = False,
     ):
         self.__dict__.update(base.__dict__)
 
-        self.audio_quality_priority = audio_quality_priority
+        self.audio_quality_priority = audio_quality_priority or [AudioQuality.VORBIS_MEDIUM]
+        self.strict_audio_quality = strict_audio_quality
 
     async def _get_playback_info(
         self,
@@ -63,7 +76,11 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
     ) -> StreamInfoAv:
         session_type_skipped = False
         priority = self.audio_quality_priority.copy()
-        if self.api.session_type == SessionType.WEB and not any(q.mp4 for q in priority):
+        if (
+            not getattr(self, "strict_audio_quality", False)
+            and self.api.session_type == SessionType.WEB
+            and not any(q.mp4 for q in priority)
+        ):
             if self.api.premium_session:
                 priority.append(AudioQuality.AAC_HIGH)
             priority.append(AudioQuality.AAC_MEDIUM)
@@ -162,6 +179,8 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
                 file_format=audio_quality.file_format,
                 actual_file_format=audio_quality.actual_file_format,
                 file_id=bytes.fromhex(file_id),
+                audio_quality=audio_quality.value,
+                source_session=SessionType.WEB.value,
             ),
         )
 
@@ -174,6 +193,7 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
         media_id: str,
         media_type: str,
         audio_quality: AudioQuality,
+        excluded_file_ids: set[bytes] | None = None,
     ) -> StreamInfoAv | None:
         if not self.api.librespot:
             return None
@@ -201,18 +221,37 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
         else:
             return None
 
+        metadata_candidates = [(media_id, metadata)]
+        if media_type == "track":
+            for alternative in metadata.alternative:
+                alternative_id = self.api.gid_to_media_id(alternative.gid.hex())
+                alternative_metadata = alternative
+                if not alternative_metadata.file:
+                    alternative_metadata = await asyncio.to_thread(
+                        self.api.librespot.session.api().get_metadata_4_track,
+                        media_id_wrapper(alternative_id, media_type),
+                    )
+                metadata_candidates.append((alternative_id, alternative_metadata))
+
         audio_quality_int = int(audio_quality.format_id)
-        file_id = next(
+        excluded_file_ids = excluded_file_ids or set()
+        selected = next(
             (
-                file.file_id
-                for file in metadata.file
+                (candidate_media_id, file.file_id)
+                for candidate_media_id, candidate_metadata in metadata_candidates
+                for file in candidate_metadata.file
                 if file.format == audio_quality_int
+                and file.file_id not in excluded_file_ids
             ),
             None,
         )
-        if not file_id:
+        if not selected:
             return None
-        stream_url = await self._get_stream_url(audio_quality.format_id, file_id.hex())
+        selected_media_id, file_id = selected
+        stream_url = await self._get_stream_url(
+            audio_quality.format_id,
+            file_id.hex(),
+        )
 
         stream_info = StreamInfoAv(
             audio_track=StreamInfo(
@@ -221,6 +260,9 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
                 file_format=audio_quality.file_format,
                 actual_file_format=audio_quality.actual_file_format,
                 file_id=file_id,
+                media_id=selected_media_id,
+                audio_quality=audio_quality.value,
+                source_session=SessionType.LIBRESPOT.value,
             ),
         )
 
@@ -289,6 +331,8 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
                 file_id=audio_file_info.file.file_id,
                 file_format=audio_quality.file_format,
                 actual_file_format=audio_quality.actual_file_format,
+                audio_quality=audio_quality.value,
+                source_session=SessionType.DESKTOP.value,
             ),
         )
 
@@ -307,19 +351,117 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
         if not self.api.librespot:
             raise Exception("Librespot is not initialized")
 
-        decryption_key = await asyncio.to_thread(
-            self.api.librespot.session.audio_key().get_audio_key,
-            bytes.fromhex(self.api.media_id_to_gid(media_id)),
-            file_id,
-        )
+        audio_key_manager = self.api.librespot.session.audio_key()
+        manager_logger = getattr(audio_key_manager, "logger", None)
+        if manager_logger is not None:
+            manager_logger.addFilter(_LIBRESPOT_AUDIO_KEY_NOISE_FILTER)
+
+        try:
+            decryption_key = await asyncio.to_thread(
+                audio_key_manager.get_audio_key,
+                bytes.fromhex(self.api.media_id_to_gid(media_id)),
+                file_id,
+            )
+        except RuntimeError as error:
+            if "Failed fetching audio key" not in str(error):
+                raise
+            raise DotifyLibrespotAudioKeyException(media_id, file_id) from error
 
         decryption_key_obj = DecryptionKey(
             decryption_key=decryption_key,
         )
 
-        logger.debug(f"Received decryption key from librespot: {decryption_key.hex()}")
+        logger.debug("Received Librespot content key")
 
         return decryption_key_obj
+
+    async def get_stream_info_with_decryption_key(
+        self,
+        media_id: str,
+        media_type: str,
+    ) -> tuple[StreamInfoAv, DecryptionKey]:
+        """Resolve a stream and transparently handle Librespot key code 1."""
+
+        stream_info = await self.get_stream_info(
+            media_id=media_id,
+            media_type=media_type,
+            skip_pssh=False,
+        )
+        librespot_failure = None
+        try:
+            return stream_info, await self.get_decryption_key(
+                stream_info=stream_info,
+                media_id=media_id,
+            )
+        except DotifyLibrespotAudioKeyException as librespot_error:
+            if self.api.session_type != SessionType.LIBRESPOT:
+                raise
+            librespot_failure = librespot_error
+
+        if getattr(self.api, "librespot", None):
+            attempted_file_ids = {stream_info.audio_track.file_id}
+            for audio_quality in getattr(self, "audio_quality_priority", []):
+                while True:
+                    alternative_stream = await self._get_stream_info_librespot(
+                        media_id=media_id,
+                        media_type=media_type,
+                        audio_quality=audio_quality,
+                        excluded_file_ids=attempted_file_ids,
+                    )
+                    if not alternative_stream:
+                        break
+                    attempted_file_ids.add(alternative_stream.audio_track.file_id)
+                    try:
+                        alternative_key = await self.get_decryption_key(
+                            stream_info=alternative_stream,
+                            media_id=media_id,
+                        )
+                    except DotifyLibrespotAudioKeyException:
+                        continue
+                    logger.warning(
+                        "Using Librespot alternative media/file after an audio "
+                        "key rejection."
+                    )
+                    return alternative_stream, alternative_key
+
+        if getattr(self, "strict_audio_quality", False) or not self.cdm:
+            raise librespot_failure
+
+        fallback_qualities = []
+        if self.api.premium_session:
+            fallback_qualities.append(AudioQuality.AAC_HIGH)
+        fallback_qualities.append(AudioQuality.AAC_MEDIUM)
+
+        for audio_quality in fallback_qualities:
+            fallback_stream = await self._get_stream_info_web(
+                media_id=media_id,
+                media_type=media_type,
+                audio_quality=audio_quality,
+                skip_pssh=False,
+            )
+            if not fallback_stream:
+                continue
+
+            logger.debug(
+                "Librespot audio key rejected; selected Web fallback %s",
+                audio_quality.value,
+            )
+            fallback_stream.audio_track.fallback_from = ",".join(
+                quality.value
+                for quality in getattr(
+                    self,
+                    "audio_quality_priority",
+                    [AudioQuality.VORBIS_MEDIUM],
+                )
+            )
+            fallback_stream.audio_track.fallback_reason = "librespot-audio-key"
+            fallback_key = await self.get_decryption_key(
+                stream_info=fallback_stream,
+                media_id=media_id,
+            )
+            return fallback_stream, fallback_key
+
+        raise DotifyMediaFormatNotAvailableException(media_id=media_id)
 
     async def _get_desktop_decryption_key(self, file_id: bytes) -> DecryptionKey:
         if not self.key_emu:
@@ -340,9 +482,7 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
             content_id=file_id[: EMULATOR_SIZES.CONTENT_ID],
         )
 
-        logger.debug(
-            f"Received decryption key from desktop method: {decryption_key.hex()}"
-        )
+        logger.debug("Received desktop content key")
 
         return DecryptionKey(
             decryption_key=bytes(decryption_key),
@@ -365,7 +505,7 @@ class SpotifyAudioInterface(SpotifyBaseInterface):
             and self.api.session_type == SessionType.LIBRESPOT
         ):
             return await self.get_librespot_decryption_key(
-                media_id=media_id,
+                media_id=stream_info.audio_track.media_id or media_id,
                 file_id=stream_info.audio_track.file_id,
             )
         elif (

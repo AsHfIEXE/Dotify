@@ -59,7 +59,8 @@ class ConfigFile:
             click_types.Choice
             | click_types.Path
             | click_types.StringParamType
-            | click_types.IntParamType,
+            | click_types.IntParamType
+            | click_types.FloatParamType,
         ):
             return str(param.default)
 

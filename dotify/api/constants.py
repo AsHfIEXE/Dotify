@@ -16,6 +16,9 @@ EXTENDED_METADATA_API_URL = (
 WIDEVINE_LICENSE_API_URL = (
     "https://gue1-spclient.spotify.com/widevine-license/v1/{type}/license"
 )
+WIDEVINE_MAX_RETRIES = 2
+WIDEVINE_RETRY_BACKOFF_SECONDS = 60
+WIDEVINE_MAX_AUTOMATIC_WAIT_SECONDS = 120
 SEEK_TABLE_API_URL = "https://seektables.scdn.co/seektable/{file_id}.json"
 TRACK_CREDITS_API_URL = "https://spclient.wg.spotify.com/track-credits-view/v0/experimental/{track_id}/credits"
 AUDIO_STREAM_URLS_API_URL = (

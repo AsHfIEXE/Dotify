@@ -22,7 +22,7 @@ def safe_json(response: httpx.Response) -> dict | None:
 
 
 class DotifyException(Exception):
-    pass
+    code = "DOTIFY_ERROR"
 
 
 class CustomStringFormatter(string.Formatter):

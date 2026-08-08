@@ -1,5 +1,6 @@
 import datetime
-from dataclasses import dataclass
+from collections.abc import Awaitable, Callable
+from dataclasses import dataclass, field
 from typing import Any
 
 from mutagen.mp4 import MP4FreeForm
@@ -27,6 +28,11 @@ class StreamInfo:
     file_format: str
     actual_file_format: str | None = None
     file_id: str | bytes | None = None
+    media_id: str | None = None
+    audio_quality: str | None = None
+    source_session: str | None = None
+    fallback_from: str | None = None
+    fallback_reason: str | None = None
 
 
 @dataclass
@@ -185,3 +191,17 @@ class SpotifyMedia:
     stream_info: StreamInfoAv | None = None
     decryption_key: DecryptionKey | None = None
     flat_filter_result: Any = None
+    stream_loader: Callable[[], Awaitable[None]] | None = field(
+        default=None,
+        repr=False,
+        compare=False,
+    )
+
+    async def ensure_stream(self) -> None:
+        """Resolve deferred stream and key data once, immediately before use."""
+
+        if self.stream_loader is None:
+            return
+        loader = self.stream_loader
+        await loader()
+        self.stream_loader = None

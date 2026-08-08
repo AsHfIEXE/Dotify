@@ -5,22 +5,47 @@ from ..utils import DotifyException
 
 
 class DotifyInterfaceException(DotifyException):
-    pass
+    code = "INTERFACE_ERROR"
 
 
 class DotifyNoCdmException(DotifyInterfaceException):
+    code = "WVD_REQUIRED"
+
     def __init__(self):
         super().__init__("Content requires a CDM but no .wvd file was provided")
 
 
 class DotifyNoKeyEmuException(DotifyInterfaceException):
+    code = "SPOTIFY_DLL_REQUIRED"
+
     def __init__(self):
         super().__init__(
             "Content requires decryption but no Spotify DLL file was provided"
         )
 
 
+class DotifyLibrespotAudioKeyException(DotifyInterfaceException):
+    code = "LIBRESPOT_AUDIO_KEY_REJECTED"
+
+    def __init__(self, media_id: str, file_id: bytes):
+        super().__init__(
+            "Spotify rejected the Librespot audio key request (code 1). "
+            "This is a known Spotify-side issue that can affect OAuth-based "
+            "Librespot sessions on some Premium accounts.\n\n"
+            f"Media ID: {media_id}\n"
+            f"File ID: {file_id.hex()}\n\n"
+            "If a WVD is configured, Dotify can fall back to the protected "
+            "AAC/Web stream. Otherwise retry with --session-type web after "
+            "configuring --wvd-path."
+        )
+
+        self.media_id = media_id
+        self.file_id = file_id
+
+
 class DotifyUrlParseException(DotifyInterfaceException):
+    code = "INVALID_SPOTIFY_URL"
+
     def __init__(self, url: str):
         super().__init__(f"Failed to parse Spotify URL: {url}")
 
@@ -28,6 +53,8 @@ class DotifyUrlParseException(DotifyInterfaceException):
 
 
 class DotifyUnsupportedMediaTypeException(DotifyInterfaceException):
+    code = "UNSUPPORTED_MEDIA"
+
     def __init__(self, media_type: str):
         super().__init__(f"Unsupported URL media type: {media_type}")
 
@@ -35,6 +62,8 @@ class DotifyUnsupportedMediaTypeException(DotifyInterfaceException):
 
 
 class DotifyMediaException(DotifyInterfaceException):
+    code = "MEDIA_ERROR"
+
     def __init__(self, message: str, media_id: str):
         super().__init__(f"{message}: {media_id}")
 
@@ -42,6 +71,8 @@ class DotifyMediaException(DotifyInterfaceException):
 
 
 class DotifyMediaFlatFilterException(DotifyMediaException):
+    code = "FILTERED_OUT"
+
     def __init__(
         self,
         media_id: str,
@@ -56,6 +87,8 @@ class DotifyMediaFlatFilterException(DotifyMediaException):
 
 
 class DotifyMediaNotFoundException(DotifyMediaException):
+    code = "MEDIA_NOT_FOUND"
+
     def __init__(self, media_id: str):
         super().__init__(
             "Media not found",
@@ -64,6 +97,8 @@ class DotifyMediaNotFoundException(DotifyMediaException):
 
 
 class DotifyMediaUnstreamableException(DotifyMediaException):
+    code = "MEDIA_UNSTREAMABLE"
+
     def __init__(self, media_id: str):
         super().__init__(
             "Media is not streamable",
@@ -72,6 +107,8 @@ class DotifyMediaUnstreamableException(DotifyMediaException):
 
 
 class DotifyMediaFormatNotAvailableException(DotifyMediaException):
+    code = "FORMAT_UNAVAILABLE"
+
     def __init__(
         self,
         media_id: str,
@@ -83,6 +120,8 @@ class DotifyMediaFormatNotAvailableException(DotifyMediaException):
 
 
 class DotifyMediaFormatNotAvailableForSessionTypeException(DotifyMediaException):
+    code = "FORMAT_UNAVAILABLE_FOR_SESSION"
+
     def __init__(
         self,
         media_id: str,

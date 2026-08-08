@@ -49,7 +49,7 @@ class SpotifyEpisodeVideoInterface(SpotifyVideoInterface):
             else None
         )
 
-        if not self.skip_stream_info:
+        async def resolve_stream() -> None:
             media.stream_info = await self.get_stream_info(episode_id, "episode")
 
             if media.stream_info.audio_track.widevine_pssh:
@@ -57,6 +57,12 @@ class SpotifyEpisodeVideoInterface(SpotifyVideoInterface):
                     media.stream_info.audio_track.widevine_pssh
                 )
 
-        logger.debug(f"Parsed episode video media: {media}")
+        if not self.skip_stream_info:
+            if self.defer_stream_info:
+                media.stream_loader = resolve_stream
+            else:
+                await resolve_stream()
+
+        logger.debug("Parsed episode video media: %s", media.media_id)
 
         return media

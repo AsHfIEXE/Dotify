@@ -66,23 +66,26 @@ class SpotifySongInterface(SpotifyAudioInterface):
             else None
         )
 
-        if not self.skip_stream_info:
+        async def resolve_stream() -> None:
             try:
-                media.stream_info = await self.get_stream_info(
+                (
+                    media.stream_info,
+                    media.decryption_key,
+                ) = await self.get_stream_info_with_decryption_key(
                     media_id=track_id,
                     media_type="track",
-                    skip_pssh=False,
                 )
             except DotifyMediaFormatNotAvailableException as e:
                 e.media_metadata = track_data
                 raise
 
-            media.decryption_key = await self.get_decryption_key(
-                stream_info=media.stream_info,
-                media_id=track_id,
-            )
+        if not self.skip_stream_info:
+            if self.defer_stream_info:
+                media.stream_loader = resolve_stream
+            else:
+                await resolve_stream()
 
-        logger.debug(f"Processed song media: {media}")
+        logger.debug("Processed song media: %s", media.media_id)
 
         return media
 

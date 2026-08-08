@@ -51,6 +51,7 @@ class SpotifyAudioDownloader(SpotifyBaseDownloader):
             }
         ) as ydl:
             http_downloader = HttpFD(ydl, ydl.params)
+            http_downloader.add_progress_hook(self.report_progress)
             http_downloader.download(
                 output_path,
                 {
@@ -61,6 +62,7 @@ class SpotifyAudioDownloader(SpotifyBaseDownloader):
     async def _download_with_aria2c(self, stream_url: str, output_path: str) -> None:
         output_path_obj = Path(output_path)
         output_path_obj.parent.mkdir(parents=True, exist_ok=True)
+        self.report_progress({"status": "downloading", "filename": output_path})
 
         await self.run_async_command(
             self.aria2c_full_path,
@@ -78,9 +80,18 @@ class SpotifyAudioDownloader(SpotifyBaseDownloader):
         )
 
         print("\r", end="")
+        self.report_progress(
+            {
+                "status": "finished",
+                "filename": output_path,
+                "downloaded_bytes": output_path_obj.stat().st_size,
+                "total_bytes": output_path_obj.stat().st_size,
+            }
+        )
 
     async def _download_with_curl(self, stream_url: str, output_path: str) -> None:
         Path(output_path).parent.mkdir(parents=True, exist_ok=True)
+        self.report_progress({"status": "downloading", "filename": output_path})
 
         await self.run_async_command(
             self.curl_full_path,
@@ -92,6 +103,15 @@ class SpotifyAudioDownloader(SpotifyBaseDownloader):
         )
 
         print("\r", end="")
+        output_size = Path(output_path).stat().st_size
+        self.report_progress(
+            {
+                "status": "finished",
+                "filename": output_path,
+                "downloaded_bytes": output_size,
+                "total_bytes": output_size,
+            }
+        )
 
     async def stage(
         self,
@@ -253,6 +273,14 @@ class SpotifyAudioDownloader(SpotifyBaseDownloader):
 
     def parse_item(self, media: SpotifyMedia) -> DownloadItem:
         item = DownloadItem(media=media)
+        self.update_item_paths(item)
+        logger.debug(f"Parsed audio item: {item}")
+        return item
+
+    def update_item_paths(self, item: DownloadItem) -> None:
+        """Populate provisional or resolved paths without requesting a stream."""
+
+        media = item.media
 
         if not media.stream_info:
             actual_file_format = self.interface.song.audio_quality_priority[
@@ -260,6 +288,14 @@ class SpotifyAudioDownloader(SpotifyBaseDownloader):
             ].actual_file_format
         else:
             actual_file_format = media.stream_info.audio_track.actual_file_format
+
+        candidate_formats = {
+            quality.actual_file_format
+            for quality in self.interface.song.audio_quality_priority
+        }
+        candidate_formats.add(actual_file_format)
+        if self.interface.song.cdm:
+            candidate_formats.add("m4a")
 
         item.staged_path = self.get_temp_path(
             media.media_id,
@@ -272,11 +308,18 @@ class SpotifyAudioDownloader(SpotifyBaseDownloader):
             "." + actual_file_format,
             media.playlist_tags,
         )
+        item.candidate_final_paths = tuple(
+            dict.fromkeys(
+                self.get_final_path(
+                    media.tags,
+                    "." + file_format,
+                    media.playlist_tags,
+                )
+                for file_format in candidate_formats
+                if file_format
+            )
+        )
         if media.playlist_tags:
             item.playlist_file_path = self.get_playlist_file_path(media.playlist_tags)
         item.synced_lyrics_path = str(Path(item.final_path).with_suffix(".lrc"))
         item.cover_path = str(Path(item.final_path).parent / "Cover.jpg")
-
-        logger.debug(f"Parsed audio item: {item}")
-
-        return item

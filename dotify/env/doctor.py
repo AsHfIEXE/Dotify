@@ -112,6 +112,7 @@ class DotifyDoctor:
             "config": self.health_check.check_config_dir,
             "cookies": self.health_check.check_cookies_file,
             "wvd": self.health_check.check_wvd_file,
+            "librespot": self.health_check.check_librespot_credentials,
             "ffmpeg": self.health_check.check_ffmpeg,
             "python": self.health_check.check_python_version,
         }
@@ -136,6 +137,7 @@ class DotifyDoctor:
             "config_dir": str(self.paths.config_dir),
             "config_file": str(self.paths.config_file),
             "keys_dir": str(self.paths.keys_dir),
+            "librespot_credentials": str(self.paths.librespot_credentials_path),
             "temp_dir": str(self.paths.temp_dir),
             "logs_dir": str(self.paths.logs_dir),
         }
