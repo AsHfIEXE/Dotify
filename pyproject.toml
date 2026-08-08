@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dotify-cli"
-version = "3.0.0+custom.4"
+version = "3.0.4"
 description = "A command-line app for downloading songs, podcasts and videos from Spotify with smart environment management."
 readme = "README.md"
 license = "MIT"

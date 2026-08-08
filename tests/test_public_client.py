@@ -77,6 +77,6 @@ def test_public_api_has_independent_version():
     assert isinstance(DotifySettings(), DotifySettings)
     assert PUBLIC_API_VERSION == (1, 2)
     assert __api_version__ == "1.2"
-    assert __version__ == "3.0.0+custom.4"
+    assert __version__ == "3.0.4"
     assert DotifySettings().widevine_backoff == 60
     assert DotifySettings().strict_audio_quality is False

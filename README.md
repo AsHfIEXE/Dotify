@@ -20,9 +20,7 @@ Spotify.
 > only for content you are authorized to access and download, and comply with
 > the laws and service terms that apply to you.
 
-This checkout is the `3.0.0+custom.4` custom build. The `+custom.4` suffix is
-PEP 440 local-version metadata and distinguishes this working-tree build from
-an upstream/public `3.0.0` release.
+This checkout is release version `3.0.4`.
 
 ## What Dotify downloads from
 

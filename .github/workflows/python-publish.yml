@@ -48,6 +48,7 @@ jobs:
     needs: release-build
 
     permissions:
+      contents: read
       id-token: write
 
     environment:
