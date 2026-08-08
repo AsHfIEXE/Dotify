@@ -1,302 +1,501 @@
 <div align="center">
 
-[![GitHub](https://img.shields.io/badge/GitHub-181717.svg?style=for-the-badge&logo=GitHub&logoColor=white)](https://github.com/AsHfIEXE/Dotify)
-[![GitHub top language](https://img.shields.io/github/languages/top/AsHfIEXE/dotify?style=for-the-badge)](https://github.com/AsHfIEXE/Dotify)
-[![PyPI Downloads](https://img.shields.io/pypi/dm/dotify-cli?style=for-the-badge&color=blue&label=Downloads)](https://pypi.org/project/dotify-cli/)
-[![GitHub Downloads](https://img.shields.io/github/downloads/AsHfIEXE/dotify/total?style=for-the-badge&logo=GitHub&logoColor=white)](https://github.com/AsHfIEXE/Dotify)
-[![GitHub last commit](https://img.shields.io/github/last-commit/AsHfIEXE/dotify/main?style=for-the-badge)](https://github.com/AsHfIEXE/Dotify)
-[![GitHub Repo stars](https://img.shields.io/github/stars/AsHfIEXE/dotify?style=for-the-badge&cacheSeconds=60)](https://github.com/AsHfIEXE/Dotify)
-[![PyPI Version](https://img.shields.io/pypi/v/dotify?style=for-the-badge&logo=PyPI&logoColor=white)](https://pypi.org/project/dotify-cli/)
-[![Python Version](https://img.shields.io/pypi/pyversions/dotify?style=for-the-badge&logo=Python&logoColor=white)](https://pypi.org/project/dotify-cli/)
-[![License](https://img.shields.io/github/license/AsHfIEXE/dotify?style=for-the-badge)](https://github.com/AsHfIEXE/Dotify)
+[![PyPI](https://img.shields.io/pypi/v/dotify-cli?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/dotify-cli/)
+[![Python](https://img.shields.io/pypi/pyversions/dotify-cli?style=for-the-badge&logo=python&logoColor=white)](https://pypi.org/project/dotify-cli/)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
 
 # 🎵 Dotify
 
-**A highly configurable Spotify CLI downloader for tracks, albums, playlists, podcasts, and music videos.**  
-Build permanent offline music libraries with lossless FLAC, full metadata, cover art, and synced lyrics.  
-Designed for music enthusiasts, Python developers, and automated media library workflows.
+An asynchronous Python application and CLI for downloading playable tracks,
+albums, playlists, podcast episodes, shows, and video content directly from
+Spotify.
 
-[Installation](#-installation) • [Quick Start](#-quick-start) • [Features](#-features) • [Documentation](https://github.com/AsHfIEXE/Dotify/wiki)
+[Installation](#installation) • [Quick start](#quick-start) •
+[Configuration](#configuration) • [Development](#development)
 
 </div>
 
----
+> [!IMPORTANT]
+> Dotify is an independent project and is not affiliated with Spotify. Use it
+> only for content you are authorized to access and download, and comply with
+> the laws and service terms that apply to you.
 
-## 📦 Installation
+This checkout is the `3.0.0+custom.4` custom build. The `+custom.4` suffix is
+PEP 440 local-version metadata and distinguishes this working-tree build from
+an upstream/public `3.0.0` release.
 
-**Requires Python 3.10+**
+## What Dotify downloads from
 
-```bash
-pip install dotify-cli --upgrade
+Dotify obtains metadata, stream URLs, manifests, cover art, and lyrics from
+Spotify. It does **not** search YouTube or substitute YouTube audio.
+
+The `yt-dlp` dependency is used only as a mature HTTP/fragment transfer engine:
+
+```text
+Spotify URL
+  -> Dotify Spotify API and media interfaces
+  -> Spotify CDN URL or Spotify media segments
+  -> yt-dlp HTTP/fragment downloader (or aria2c/curl for audio)
+  -> decrypt/remux, tag, and save
 ```
 
-Set up your environment in one command:
+This is why `yt-dlp` is present even though Spotify remains the media source.
+
+## Features
+
+- Spotify track, album, playlist, artist, show, and episode URLs
+- Songs, podcast audio, music videos, and video podcast episodes when available
+- Vorbis, AAC, FLAC, MP4-FLAC, MP4, and WebM support
+- Ordered audio-quality fallbacks
+- Metadata, cover art embedding, and synced LRC lyrics when Spotify provides them
+- Configurable output folders, filenames, tags, remux tools, and download modes
+- Multiple URLs and URL lists from text files
+- Interactive terminal queue with item selection, progress, speed, ETA, and summary
+- Metadata-only TUI selection; streams and licenses are resolved only for chosen items
+- Persistent download state with safe `--resume` and `--no-resume` controls
+- Configurable Widevine request pacing and bounded `429` retries
+- English and Turkish terminal text
+- Guided first-time setup with `dotify init`
+- Environment diagnostics with `dotify env doctor`
+- Secure `sp_dc` import from Chrome, Firefox, Safari, Edge, Brave, and related browsers
+- Async, CLI-independent Python API and entry-point based plugins
+
+## Requirements
+
+- Python 3.10 or newer
+- A Netscape-format Spotify `cookies.txt` containing the logged-in account's
+  `sp_dc` cookie
+- FFmpeg for the default remux workflow and video output
+- The `librespot` optional dependency (powered by the protobuf 6 compatible
+  `pyfreedom` package) for the default `librespot` session
+
+The `web` session downloads protected AAC/MP4 media and therefore requires a
+compatible Widevine `device.wvd` (except for dry-run and lyrics-only use).
+Alternative modes may require `aria2c`, `curl`, MP4Box, `mp4decrypt`, or Shaka
+Packager. Run `dotify env doctor --verbose` to see the current environment
+status.
+
+Availability and maximum quality depend on the Spotify account, selected
+session type, market, media item, and supplied decryption material. A requested
+format is not guaranteed to exist for every item.
+
+## Installation
+
+### From PyPI
+
+The default session type is `librespot`, so the recommended installation is:
 
 ```bash
-dotify env setup    # creates ~/.dotify/ with all required dirs
-dotify env doctor   # verifies dependencies and credentials
+python -m pip install --upgrade "dotify-cli[librespot]"
 ```
 
-> **New to Dotify?** See the full [Installation Guide](https://github.com/AsHfIEXE/Dotify/wiki/Installation) for FFmpeg, Aria2c, and Widevine key setup.
-
----
-
-## 🚀 Quick Start
+The base package can instead be installed without that optional dependency,
+but the `web` session and a valid WVD must then be selected explicitly:
 
 ```bash
-# Download a track
+python -m pip install --upgrade dotify-cli
+dotify --session-type web "SPOTIFY_URL"
+```
+
+Run the guided setup and diagnostics:
+
+```bash
+dotify init
+dotify auth librespot
+dotify env doctor --verbose
+```
+
+Spotify web cookies and Librespot authorization are separate. The first
+`dotify auth librespot` run opens Spotify OAuth in the browser, waits for the
+local callback at `127.0.0.1:5588`, and saves reusable credentials to
+`~/.dotify/librespot_credentials.json`. The file is created with user-only
+permissions. Dotify does not silently switch to the `web` session if this
+authorization is missing or rejected.
+
+Instead of exporting `cookies.txt` manually, Dotify can import only Spotify's
+required `sp_dc` cookie from a browser where you are already signed in:
+
+```bash
+dotify auth web --browser auto
+dotify auth web --browser chrome --profile "Profile 2" --force
+```
+
+`auto` checks supported local browsers in order. The importer does not copy
+cookies belonging to other sites, writes the Netscape file atomically with
+user-only permissions, and leaves an existing file untouched when extraction
+fails. macOS may request Keychain access; Safari extraction may additionally
+require Full Disk Access for the terminal application.
+
+To refresh the cookie immediately before one download, use:
+
+```bash
+dotify --cookies-from-browser auto "SPOTIFY_URL"
+dotify --cookies-from-browser chrome --browser-profile "Profile 2" "SPOTIFY_URL"
+```
+
+The same behavior can be made persistent with `cookies_from_browser` in the
+configuration file. Because this reads the browser cookie store on every run,
+leave it as `null` if you prefer explicit refreshes through `dotify auth web`.
+
+`dotify init` asks for the language, output directory, audio-quality profile,
+cookie and optional WVD paths, TUI preference, and delay between downloads. It
+writes `~/.dotify/config.ini` and does not replace an existing configuration
+without confirmation or `--force`.
+
+For unattended setup:
+
+```bash
+dotify init --non-interactive --language tr
+dotify init --non-interactive --force --config-path /path/to/config.ini
+```
+
+### From this repository
+
+This checkout is the source of truth. Install it in editable mode so commands
+inside the virtual environment import the `dotify/*.py` files from this working
+tree directly:
+
+```bash
+git clone https://github.com/condainstall/dotify.git
+cd dotify
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[dev,librespot]"
+```
+
+If `uv` is installed, the equivalent setup is:
+
+```bash
+uv sync --extra dev --extra librespot
+source .venv/bin/activate
+```
+
+Then run either form:
+
+```bash
+dotify --help
+python -m dotify --help
+```
+
+The `dotify` executable in `.venv/bin/` is only the command entry point for
+this editable project. It is not a second copy of the application. Changes to
+the repository's Python files are used on the next run; reinstalling is usually
+needed only after dependency or packaging metadata changes.
+
+## Quick start
+
+The `download` subcommand is optional. `dotify URL` and
+`dotify download URL` are equivalent.
+
+Authorize the default Librespot session once before the first download:
+
+```bash
+dotify auth librespot
+dotify auth status
+```
+
+```bash
+# Track
 dotify "https://open.spotify.com/track/18gqCQzqYb0zvurQPlRkpo"
 
-# Download an album
+# Album
 dotify "https://open.spotify.com/album/0r8D5N674HbTXlR3zNxeU1"
 
-# Download a playlist
+# Playlist
 dotify "https://open.spotify.com/playlist/37i9dQZF1DXcBWIGoYBM5M"
 
-# Download an artist's full discography
-dotify "https://open.spotify.com/artist/..."
+# Show or individual podcast episode
+dotify "https://open.spotify.com/show/SPOTIFY_ID"
+dotify "https://open.spotify.com/episode/SPOTIFY_ID"
 
-# Download in lossless FLAC (Premium required)
-dotify --audio-quality flac-flac,aac-high "https://open.spotify.com/track/..."
+# Explicit subcommand form
+dotify download "https://open.spotify.com/track/SPOTIFY_ID"
 ```
 
-For Premium quality (FLAC / AAC 256kbps), you'll need Spotify cookies and a Widevine key.  
-See [Authentication](https://github.com/AsHfIEXE/Dotify/wiki/Authentication) for the full setup walkthrough.
-
----
-
-## ✨ Features
-
-### 🎧 Content Support
-
-| Type | Formats | Quality | Notes |
-|---|---|---|---|
-| Songs | Vorbis | 96–320kbps | No extra tools required |
-| Songs | AAC | 128–256kbps | Requires `.wvd` + Premium |
-| Songs | FLAC / 24-bit FLAC | Lossless | L1-certified `.wvd` + Premium |
-| Podcasts | Vorbis / AAC | 96–320kbps | Free + Premium |
-| Music Videos | MP4 (H.264), WebM | Up to 1080p | Requires `.wvd` + FFmpeg + Premium |
-| Podcast Videos | MP4, WebM | Up to 1080p | Requires FFmpeg / MP4Box |
-| Lyrics | LRC (synced) | — | Downloaded automatically |
-
-### 🛠️ Smart Environment Management
-
-- **`dotify env setup`** — One-command environment scaffolding
-- **`dotify env doctor`** — Comprehensive health checks with actionable fixes
-- **`dotify env paths`** — Inspect all Dotify-related file locations
-- **`dotify env check [component]`** — Check a specific dependency (`ffmpeg`, `cookies`, `wvd`, ...)
-
-### 🎨 Advanced Capabilities
-
-- **Flexible templates** — Customize folder and file names with `{artist}`, `{album}`, `{year}`, `{isrc}`, and more
-- **Quality fallback chains** — `flac-flac-24,flac-flac,aac-high` tries each in order automatically
-- **Multiple download modes** — `ytdlp` (default) or `aria2c` for parallel multi-connection downloads
-- **Multiple remux modes** — FFmpeg, MP4Box, or mp4decrypt
-- **Preflight validation** — Checks credentials and dependencies before every download
-- **Batch downloads** — Pass multiple URLs or a `.txt` file with `-r`
-
----
-
-## ⚙️ Configuration
-
-Config file is auto-created at `~/.dotify/config.ini` (Linux/macOS) or `%USERPROFILE%\.dotify\config.ini` (Windows).
-
-| Key | Description | Default |
-|---|---|---|
-| `cookies_path` | Path to Spotify cookies file | `~/.dotify/cookies.txt` |
-| `wvd_path` | Path to Widevine `.wvd` key | `~/.dotify/keys/device.wvd` |
-| `output_path` | Root output directory | `Spotify` |
-| `audio_quality` | Quality priority list | `aac-medium` |
-| `wait_interval` | Seconds between downloads | `5` |
-| `log_level` | Logging verbosity | `INFO` |
-
-### Audio Quality Options
-
-| String | Format | Bitrate / Depth | Requires Premium |
-|---|---|---|---|
-| `flac-flac-24` | FLAC | 24-bit lossless | ✅ |
-| `flac-flac` | FLAC | 16-bit lossless | ✅ |
-| `aac-high` | AAC | 256kbps | ✅ |
-| `vorbis-high` | Vorbis | 320kbps | ✅ |
-| `aac-medium` | AAC | 128kbps | ❌ |
-| `vorbis-medium` | Vorbis | 160kbps | ❌ |
-| `vorbis-low` | Vorbis | 96kbps | ❌ |
-
-### Template Variables
-
-| Scope | Variables |
-|---|---|
-| Album | `{album}`, `{album_artist}`, `{year}`, `{label}` |
-| Track | `{title}`, `{track}`, `{disc}`, `{artist}` |
-| Metadata | `{isrc}`, `{composer}`, `{copyright}`, `{genre}` |
-| Playlist | `{playlist_title}`, `{playlist_artist}`, `{playlist_track}` |
+An artist URL asks which category to process. For non-interactive use, select
+the category explicitly:
 
 ```bash
-# Example: organized library structure
-dotify "URL" \
-  --album-folder-template "{album_artist}/{album} [{year}]" \
-  --single-disc-file-template "{track:02d} - {title}"
+dotify --auto-media-option artist-top-tracks "https://open.spotify.com/artist/SPOTIFY_ID"
+dotify --auto-media-option artist-albums "https://open.spotify.com/artist/SPOTIFY_ID"
+dotify --auto-media-option artist-singles "https://open.spotify.com/artist/SPOTIFY_ID"
+dotify --auto-media-option artist-compilations "https://open.spotify.com/artist/SPOTIFY_ID"
+dotify --auto-media-option artist-videos "https://open.spotify.com/artist/SPOTIFY_ID"
 ```
 
-See the full [Configuration Reference](https://github.com/AsHfIEXE/Dotify/wiki/Configuration) for all options.
+`artist-albums`, `artist-singles`, and `artist-compilations` are separate
+categories; an artist URL does not automatically mean "the full discography."
 
----
+## Terminal UI and languages
 
-## 🔑 Authentication Setup
-
-To access Premium quality content:
-
-1. **Get Spotify cookies** — Export from [open.spotify.com](https://open.spotify.com) using *"Get cookies.txt LOCALLY"* (Chrome/Edge) or *"Export Cookies"* (Firefox). Save to `~/.dotify/cookies.txt`.
-
-2. **Get a Widevine key** — Use [KeyDive](https://github.com/hyugogirubato/KeyDive) on an Android device to extract `device.wvd`. Place it at `~/.dotify/keys/device.wvd`.
-
-3. **Verify** — Run `dotify env doctor`.
+Use `--tui` to select items from multi-item URLs and display a live queue:
 
 ```bash
-dotify env setup --create-placeholders  # scaffolds empty files so you know what to fill in
-dotify env doctor                       # confirms everything is ready
+dotify --tui --language tr "SPOTIFY_URL"
+dotify --no-tui "SPOTIFY_URL"
 ```
 
-Full walkthrough: [Authentication](https://github.com/AsHfIEXE/Dotify/wiki/Authentication)
+For playlist URLs the TUI first offers `Download all tracks` and `Choose
+tracks`. Download-all mode streams playlist entries directly instead of
+preparing the full track-selection list. Choose-tracks mode fetches metadata
+only and uses stable numeric selections. Stream URLs, audio keys, and Widevine
+licenses are resolved only when an item is about to download. Existing output
+and persistent-queue checks run first, so unselected or already completed
+items do not consume a license request. The TUI displays byte progress, speed,
+and ETA when the selected transfer backend reports them. `aria2c` and `curl`
+currently report an indeterminate state followed by the final transferred
+size.
 
----
-
-## 📖 Usage Reference
-
-### Basic
+Supported languages are `en` and `tr`. `auto` checks `DOTIFY_LANGUAGE`, then
+the system locale, and falls back to English:
 
 ```bash
-dotify "https://open.spotify.com/track/..."
-dotify "https://open.spotify.com/album/..."
-dotify "https://open.spotify.com/playlist/..."
-dotify "https://open.spotify.com/artist/..."
+dotify --language en "SPOTIFY_URL"
+DOTIFY_LANGUAGE=tr dotify "SPOTIFY_URL"
 ```
 
-### Quality & Output
+See [TUI and localization](docs/TUI_AND_LOCALIZATION.md) for more detail.
+
+## Common commands
+
+### Quality and output
+
+Audio quality is a comma-separated priority list. Dotify tries entries in
+order until it finds one that the current session can play.
+
+By default, Dotify may use an implicit Web/AAC fallback after a Librespot audio
+key rejection. Add `--strict-audio-quality` to restrict resolution to the
+explicit comma-separated list. The TUI completion line and summary report the
+actual codec/container; when fallback occurs, a separate table reports the
+requested qualities, actual format, and final file path.
 
 ```bash
-dotify "URL" --audio-quality flac-flac-24,flac-flac,aac-high
-dotify "URL" --output "/path/to/music"
-dotify "URL" --synced-lyrics-only
+dotify --audio-quality vorbis-high,aac-medium "SPOTIFY_URL"
+dotify --audio-quality flac-flac-24,flac-flac,aac-high "SPOTIFY_URL"
+dotify --strict-audio-quality --audio-quality vorbis-high,vorbis-medium "SPOTIFY_URL"
+dotify --output "/path/to/music" "SPOTIFY_URL"
+dotify --synced-lyrics-only "SPOTIFY_URL"
+dotify --dry-run "SPOTIFY_URL"
 ```
 
-### Video Downloads
+Supported audio-quality identifiers:
+
+| Identifier | Container/output | Nominal quality | Premium |
+|---|---|---:|:---:|
+| `vorbis-low` | Ogg Vorbis | 96 kbps | No |
+| `vorbis-medium` | Ogg Vorbis | 160 kbps | No |
+| `vorbis-high` | Ogg Vorbis | 320 kbps | Yes |
+| `aac-medium` | M4A/AAC | 128 kbps | No |
+| `aac-high` | M4A/AAC | 256 kbps | Yes |
+| `flac-flac` | FLAC | Lossless | Yes |
+| `flac-mp4` | MP4-FLAC to FLAC | Lossless | Yes |
+| `flac-flac-24` | FLAC | 24-bit lossless | Yes |
+| `flac-mp4-24` | MP4-FLAC to FLAC | 24-bit lossless | Yes |
+
+### Video
+
+Use `--prefer-video` to choose an associated music video or a video podcast
+episode when Spotify reports one. Without it, Dotify prefers audio unless the
+track itself is video media.
 
 ```bash
-dotify "URL" --download-music-videos
-dotify "URL" --download-podcast-videos
-dotify "URL" --video-format webm
+dotify --prefer-video "SPOTIFY_URL"
+dotify --prefer-video --video-format webm --video-resolution 1080p "SPOTIFY_URL"
+dotify --auto-media-option artist-videos "https://open.spotify.com/artist/SPOTIFY_ID"
 ```
 
-### Batch & Automation
+Valid resolutions are `144p`, `240p`, `360p`, `480p`, `576p`, `720p`, and
+`1080p`. Valid video formats are `mp4`, `webm`, and `ask`.
+
+### Batch and automation
 
 ```bash
-dotify --read-urls-as-txt urls.txt
+# Multiple URLs
 dotify "URL1" "URL2" "URL3"
-dotify "URL" --wait-interval 10 --log-level DEBUG
+
+# One URL per line
+dotify --read-urls-as-txt urls.txt
+dotify -r urls.txt
+
+# Non-interactive artist or liked-tracks selection
+dotify --auto-media-option artist-albums "ARTIST_URL"
+dotify --auto-media-option liked-tracks
+
+# Skip already registered media with a persistent database
+dotify --database-path ~/.dotify/downloads.db "SPOTIFY_URL"
 ```
 
-### Download Modes
+### Audio transfer and remux modes
 
 ```bash
-dotify "URL" --download-mode ytdlp    # default
-dotify "URL" --download-mode aria2c   # faster (requires aria2c)
+dotify --audio-download-mode ytdlp "SPOTIFY_URL"  # default
+dotify --audio-download-mode aria2c "SPOTIFY_URL" # requires aria2c
+dotify --audio-download-mode curl "SPOTIFY_URL"   # requires curl
+
+dotify --audio-remux-mode ffmpeg "SPOTIFY_URL"   # default
+dotify --audio-remux-mode mp4box "SPOTIFY_URL"
+dotify --audio-remux-mode mp4decrypt "SPOTIFY_URL"
 ```
 
----
+`--audio-download-mode` changes only how an already resolved Spotify stream is
+transferred. It does not change the media provider.
 
-## 🔧 Troubleshooting
-
-| Error | Cause | Fix |
-|---|---|---|
-| `403 Forbidden` / `Unauthorized` | Cookies expired | Re-export from incognito, replace `~/.dotify/cookies.txt` |
-| Getting 128kbps despite `aac-high` | Free account or missing `.wvd` | Check `dotify env doctor` |
-| `ffmpeg not found` | Not in PATH | Install FFmpeg or set `ffmpeg_path` in config |
-| `dotify` not found after install | Scripts dir not in PATH | Run `python -m dotify "URL"` or reinstall with `--user` |
-| Video download fails | `mp4decrypt`/`MP4Box` missing | Install Bento4 + GPAC, verify with `mp4decrypt --version` |
-| Slow downloads | Aria2c not installed | Install aria2c, use `--download-mode aria2c` |
+### Output templates
 
 ```bash
-dotify env doctor --verbose   # full diagnostic
-dotify env doctor --json      # machine-readable output
-dotify env check ffmpeg       # check a specific component
-dotify env paths              # inspect all file paths
+dotify \
+  --album-folder-template "{album_artist}/{album} [{date:%Y}]" \
+  --single-disc-file-template "{track:02d} - {title}" \
+  "SPOTIFY_URL"
 ```
 
-Full FAQ: [Troubleshooting](https://github.com/AsHfIEXE/Dotify/wiki/Troubleshooting)
+Available values include:
 
----
+- Media: `{title}`, `{artist}`, `{album}`, `{album_artist}`, `{track}`,
+  `{track_total}`, `{disc}`, `{disc_total}`, `{date}`, `{label}`, `{isrc}`,
+  `{media_id}`, `{media_type}`, `{rating}`
+- Credits: `{composer}`, `{producer}`, `{publisher}`
+- Playlist: `{playlist_title}`, `{playlist_artist}`, `{playlist_track}`,
+  `{playlist_id}`
 
-## 📚 Documentation
+Templates use Python format syntax, so compatible values can include format
+specifiers such as `{track:02d}` and `{date:%Y}`.
 
-Full documentation is available in the [Wiki](https://github.com/AsHfIEXE/Dotify/wiki):
+## Configuration
 
-| Page | Description |
+The default configuration file is `~/.dotify/config.ini` on all supported
+platforms. CLI options take precedence over values in that file. Use
+`--config-path` for another file or `--no-config-file` for one run without it.
+
+The file uses a single `[dotify]` section and option names without leading
+dashes:
+
+```ini
+[dotify]
+language = auto
+tui = false
+cookies_path = /home/user/.dotify/cookies.txt
+cookies_from_browser = null
+browser_profile = null
+librespot_credentials_path = /home/user/.dotify/librespot_credentials.json
+wvd_path = /home/user/.dotify/keys/device.wvd
+output = ./Spotify
+temp = .
+session_type = librespot
+audio_quality = vorbis-medium
+strict_audio_quality = false
+audio_download_mode = ytdlp
+audio_remux_mode = ffmpeg
+video_format = mp4
+video_resolution = 1080p
+wait_interval = 10
+widevine_retries = 2
+widevine_backoff = 60
+widevine_max_wait = 120
+widevine_request_interval = 0
+queue_state_path = /home/user/.dotify/queue.json
+resume = true
+log_level = INFO
+```
+
+The shown values are CLI defaults. The guided initializer intentionally uses
+a more convenient first-run profile: the current directory's `Spotify`
+folder, `~/.dotify/temp`, balanced `vorbis-high,aac-medium` quality, TUI
+enabled, and a one-second wait.
+
+Use `dotify download --help` as the authoritative list of configurable
+options.
+
+## Environment commands
+
+```bash
+dotify env setup
+dotify env setup --create-placeholders
+dotify env doctor
+dotify env doctor --verbose
+dotify env doctor --json
+dotify env check config
+dotify env check cookies
+dotify env check wvd
+dotify env check librespot
+dotify env check ffmpeg
+dotify env check python
+dotify env paths
+```
+
+`env doctor --verbose` also reports optional `aria2c`, `mp4box`,
+`mp4decrypt`, and `packager` binaries. Preflight checks run before downloads by
+default; `--skip-preflight` bypasses them for debugging but does not make a
+missing runtime dependency usable.
+
+Download commands return exit code `0` when all items succeed or are
+intentionally skipped, `1` when setup, authentication, URL, API, dependency,
+or download errors occur, and `2` for invalid command usage. User-facing error
+messages hide tracebacks by default; add `--exceptions` when debugging.
+
+## Troubleshooting
+
+| Symptom | Check |
 |---|---|
-| [Installation](https://github.com/AsHfIEXE/Dotify/wiki/Installation) | pip install, FFmpeg, Aria2c, Bento4 setup |
-| [Environment Setup](https://github.com/AsHfIEXE/Dotify/wiki/Environment-Setup) | `env setup`, `env doctor`, v1→v2 migration |
-| [Authentication](https://github.com/AsHfIEXE/Dotify/wiki/Authentication) | Cookies, KeyDive, Widevine `.wvd` |
-| [Basic Usage](https://github.com/AsHfIEXE/Dotify/wiki/Basic-Usage) | Tracks, albums, playlists, artists |
-| [Advanced Usage](https://github.com/AsHfIEXE/Dotify/wiki/Advanced-Usage) | Templates, video, lyrics-only, batch |
-| [Audio Quality Reference](https://github.com/AsHfIEXE/Dotify/wiki/Audio-Quality-Reference) | All format strings and priority examples |
-| [Configuration](https://github.com/AsHfIEXE/Dotify/wiki/Configuration) | Full `config.ini` key reference |
-| [Dependencies Explained](https://github.com/AsHfIEXE/Dotify/wiki/Dependencies-Explained) | FFmpeg, Aria2c, mp4decrypt, MP4Box, WVD |
-| [Troubleshooting](https://github.com/AsHfIEXE/Dotify/wiki/Troubleshooting) | Error index and fixes |
+| `dotify` is not found | Activate `.venv`, use `.venv/bin/dotify`, or run `python -m dotify` |
+| Cookies or `sp_dc` error | Export a current Netscape-format cookie file from a logged-in Spotify session and check `--cookies-path` |
+| Browser cookie import cannot find `sp_dc` | Sign in at `open.spotify.com` in the selected browser, close private/incognito mode, then run `dotify auth web --browser chrome --force`; on macOS approve Keychain access if requested |
+| Librespot credentials are missing | Run `dotify auth librespot`; Spotify web cookies do not replace this OAuth step |
+| Librespot returns `403` for a Premium account | Run `dotify auth librespot --force` to replace the stored authorization; Dotify will report the error instead of switching to Web |
+| Librespot reports `Audio key error, code: 1` | This Spotify-side rejection can affect individual OAuth/Premium sessions. When a valid WVD is configured, Dotify retries that item with Spotify's protected AAC/Web stream; otherwise use `--session-type web --wvd-path /path/to/device.wvd` |
+| Widevine license returns `429` | Dotify honors `Retry-After`, serializes license calls, and applies bounded retries. Avoid parallel commands. Tune conservatively with `--widevine-retries`, `--widevine-backoff`, `--widevine-max-wait`, and `--widevine-request-interval`; these controls reduce request pressure but cannot bypass Spotify's limit |
+| `pyfreedom` module is missing | Install `dotify-cli[librespot]` or select another supported `--session-type` |
+| FFmpeg error | Install FFmpeg, add it to `PATH`, or set `--ffmpeg-path` |
+| Requested quality is unavailable | Check account tier, session type, WVD path, market availability, and the fallback list |
+| Video decrypt/remux fails | Run `dotify env doctor --verbose` and verify FFmpeg plus the selected MP4/WebM decryption tools |
+| Need diagnostic detail | Run with `--exceptions --log-level DEBUG --log-file dotify.log` |
 
----
+## Python API and plugins
 
-## 🌟 Changelog Highlights
+Dotify exposes a reusable async API that does not depend on Click configuration:
 
-### v2.0.0 — Environment Management Layer
-- `dotify env setup` — one-command environment scaffolding
-- `dotify env doctor` — comprehensive health checks with actionable errors
-- `dotify env paths` / `dotify env check` — granular diagnostics
-- Centralized config at `~/.dotify/`, preflight validation before every run
+```python
+import asyncio
+from pathlib import Path
 
-### v1.9.8
-- FLAC and 24-bit FLAC audio quality support
-- Improved fallback quality chain handling
+from dotify import DotifyClient, DotifySettings
 
----
 
-[![Star History Chart](https://api.star-history.com/svg?repos=ashfiexe/dotify&type=Date&theme=dark)](https://star-history.com/#ashfiexe/dotify&Date)
+async def main() -> None:
+    settings = DotifySettings(
+        output_path="./Music",
+        audio_quality=("vorbis-high", "aac-medium"),
+        widevine_retries=2,
+        widevine_request_interval=5,
+        queue_state_path=str(Path.home() / ".dotify" / "queue.json"),
+        resume=True,
+    )
+    cookies = Path.home() / ".dotify" / "cookies.txt"
 
----
+    async with await DotifyClient.from_cookies(str(cookies), settings) as client:
+        result = await client.download("https://open.spotify.com/track/SPOTIFY_ID")
+        print(result.paths)
 
-## 🤝 Contributing
 
-Contributions are welcome!
+asyncio.run(main())
+```
 
-1. Fork the repository
-2. Create your feature branch: `git checkout -b feature/AmazingFeature`
-3. Commit your changes: `git commit -m 'Add AmazingFeature'`
-4. Push to the branch: `git push origin feature/AmazingFeature`
-5. Open a Pull Request
+See [Python API](docs/PUBLIC_API.md) and [plugins](docs/PLUGINS.md) for the
+supported surface and extension protocols.
 
----
+## Development
 
-## 🙏 Acknowledgments
+After installing the checkout in editable mode:
 
-- [Spotify](https://spotify.com) — for the platform
-- [KeyDive](https://github.com/hyugogirubato/KeyDive) — Widevine key extraction
-- [yt-dlp](https://github.com/yt-dlp/yt-dlp) — download engine
-- [FFmpeg](https://ffmpeg.org) — media processing
-- All contributors and users of Dotify
+```bash
+pytest -m "not performance"
+pytest -m performance
+ruff check dotify tests
+python -m build
+```
 
----
+Architecture and contribution guidance is in [CONTRIBUTING.md](CONTRIBUTING.md).
 
-## 📝 License
+## License
 
-MIT License — see [LICENSE](LICENSE) for details.
-
----
-
-<div align="center">
-
-📧 [salahin0ashfi@gmail.com](mailto:salahin0ashfi@gmail.com) · 💬 [Discord](https://discord.gg/YSv62BvCtS) · 🐛 [Issues](https://github.com/AsHfIEXE/Dotify/issues)
-
-**⭐ If Dotify saves you time, a star goes a long way! ⭐**
-
-Made with ❤️ by [@AsHfIEXE](https://github.com/AsHfIEXE)
-
-</div>
+Dotify is distributed under the [MIT License](LICENSE).

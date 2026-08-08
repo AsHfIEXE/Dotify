@@ -6,7 +6,7 @@ from async_lru import alru_cache
 from pywidevine import PSSH, Cdm, Device
 from unplayplay.key_emu import KeyEmu
 
-from ..api import SpotifyApi
+from ..api.adapter import SpotifyApiPort
 from .constants import URL_INFO_RE
 from .enums import CoverSize, MediaRating
 from .exceptions import DotifyNoCdmException, DotifyUrlParseException
@@ -18,9 +18,10 @@ logger = logging.getLogger(__name__)
 class SpotifyBaseInterface:
     def __init__(
         self,
-        api: SpotifyApi,
+        api: SpotifyApiPort,
         cover_size: CoverSize = CoverSize.EXTRA_LARGE,
         skip_stream_info: bool = False,
+        defer_stream_info: bool = False,
         wvd_path: str | None = None,
         spotify_dll_path: str | None = None,
         disallowed_media_types: list[str] | None = None,
@@ -28,6 +29,7 @@ class SpotifyBaseInterface:
         self.api = api
         self.cover_size = cover_size
         self.skip_stream_info = skip_stream_info
+        self.defer_stream_info = defer_stream_info
         self.wvd_path = wvd_path
         self.spotify_dll_path = spotify_dll_path
         self.disallowed_media_types = disallowed_media_types or []
@@ -95,6 +97,7 @@ class SpotifyBaseInterface:
         if not self.cdm:
             raise DotifyNoCdmException()
 
+        cdm_session = None
         try:
             cdm_session = self.cdm.open()
             pssh = PSSH(pssh)
@@ -107,9 +110,10 @@ class SpotifyBaseInterface:
             decryption_key = keys.key.hex()
             key_id = keys.kid.hex
         finally:
-            self.cdm.close(cdm_session)
+            if cdm_session is not None:
+                self.cdm.close(cdm_session)
 
-        logger.debug(f"Received decryption key: {key_id}:{decryption_key}")
+        logger.debug("Received Widevine content key")
 
         return DecryptionKey(key_id=key_id, decryption_key=decryption_key)
 

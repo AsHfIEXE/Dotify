@@ -6,7 +6,7 @@ from typing import Collection
 import httpx
 
 from ..utils import safe_json
-from .constants import TOTP_DIGITS, TOTP_PERIOD, TOTP_SECRETS_URL
+from .constants import TIMEOUT, TOTP_DIGITS, TOTP_PERIOD, TOTP_SECRETS_URL
 from .exceptions import DotifyRequestException
 
 logger = logging.getLogger(__name__)
@@ -23,7 +23,7 @@ class Totp:
 
     @classmethod
     async def initialize(cls) -> "Totp":
-        async with httpx.AsyncClient() as client:
+        async with httpx.AsyncClient(timeout=TIMEOUT) as client:
             response = await client.get(TOTP_SECRETS_URL)
         secrets = safe_json(response)
         if response.status_code != 200 or not secrets:
@@ -33,7 +33,7 @@ class Totp:
                 response_text=response.text,
             )
 
-        logger.debug(f"Received TOTP secrets: {secrets}")
+        logger.debug("Received TOTP secret version metadata")
 
         version = max(secrets.keys(), key=int)
 
@@ -64,6 +64,6 @@ class Totp:
         )
         result = str(binary % (10**TOTP_DIGITS)).zfill(TOTP_DIGITS)
 
-        logger.debug(f"Generated TOTP code: {result}")
+        logger.debug("Generated TOTP code")
 
         return result

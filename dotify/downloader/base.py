@@ -6,6 +6,7 @@ import shutil
 import subprocess
 from io import BytesIO
 from pathlib import Path
+from typing import Any, Callable
 
 import httpx
 from async_lru import alru_cache
@@ -50,6 +51,7 @@ class SpotifyBaseDownloader:
         truncate: int | None = None,
         silent: bool = False,
         skip_cleanup: bool = False,
+        progress_callback: Callable[[dict[str, Any]], None] | None = None,
     ) -> None:
         self.interface = interface
         self.output_path = output_path
@@ -74,8 +76,15 @@ class SpotifyBaseDownloader:
         self.truncate = truncate
         self.silent = silent
         self.skip_cleanup = skip_cleanup
+        self.progress_callback = progress_callback
 
         self._initialize()
+
+    def report_progress(self, payload: dict[str, Any]) -> None:
+        """Forward a downloader progress event when a reporter is configured."""
+
+        if self.progress_callback is not None:
+            self.progress_callback(payload)
 
     def _initialize(self) -> None:
         self._initialize_truncate()
@@ -96,7 +105,7 @@ class SpotifyBaseDownloader:
         if not self.ffmpeg_full_path:
             logger.warning(
                 "FFmpeg not found in PATH. Some features may not work. "
-                "Run 'dotify doctor' to check your environment."
+                "Run 'dotify env doctor' to check your environment."
             )
 
     def sanitize_string(

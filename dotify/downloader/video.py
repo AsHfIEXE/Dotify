@@ -48,6 +48,7 @@ class SpotifyVideoDownloader(SpotifyBaseDownloader):
         ) as ydl:
             try:
                 fragment_downloader = FragmentFD(ydl, ydl.params)
+                fragment_downloader.add_progress_hook(self.report_progress)
                 fragment_downloader._prepare_and_start_frag_download(
                     ctx,
                     info_dict,

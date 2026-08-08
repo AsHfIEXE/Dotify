@@ -52,7 +52,7 @@ class SpotifyEpisodeInterface(SpotifyAudioInterface):
             else None
         )
 
-        if not self.skip_stream_info:
+        async def resolve_stream() -> None:
             media.stream_info = await self.get_stream_info(
                 episode_data=episode_data,
             )
@@ -61,7 +61,13 @@ class SpotifyEpisodeInterface(SpotifyAudioInterface):
                 decryption_key=DEFAULT_EPISODE_DECRYPTION_KEY,
             )
 
-        logger.debug(f"Parsed episode media: {media}")
+        if not self.skip_stream_info:
+            if self.defer_stream_info:
+                media.stream_loader = resolve_stream
+            else:
+                await resolve_stream()
+
+        logger.debug("Parsed episode media: %s", media.media_id)
 
         return media
 
@@ -153,6 +159,8 @@ class SpotifyEpisodeInterface(SpotifyAudioInterface):
                 file_format=audio_quality.file_format,
                 actual_file_format=audio_quality.actual_file_format,
                 widevine_pssh=None,
+                audio_quality=audio_quality.value,
+                source_session=self.api.session_type.value,
             )
         )
 

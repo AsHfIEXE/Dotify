@@ -7,6 +7,7 @@ import click
 from dataclass_click import argument, option
 
 from ..api.api import SpotifyApi
+from ..api.browser_cookies import SUPPORTED_BROWSER_SOURCES
 from ..api.enums import SessionType
 from ..downloader.audio import SpotifyAudioDownloader
 from ..downloader.base import SpotifyBaseDownloader
@@ -46,6 +47,23 @@ _dotify_paths = DotifyPaths()
 @dataclass
 class CliConfig:
     # CLI specific options
+    language: Annotated[
+        str,
+        option(
+            "--language",
+            help="Interface language",
+            default="auto",
+            type=click.Choice(["auto", "en", "tr"]),
+        ),
+    ]
+    tui: Annotated[
+        bool,
+        option(
+            "--tui/--no-tui",
+            help="Use the interactive terminal queue and progress interface",
+            default=False,
+        ),
+    ]
     skip_preflight: Annotated[
         bool,
         option(
@@ -119,9 +137,8 @@ class CliConfig:
     no_exceptions: Annotated[
         bool,
         option(
-            "--no-exceptions",
-            help="Don't print exceptions",
-            is_flag=True,
+            "--no-exceptions/--exceptions",
+            help="Hide or show exception tracebacks",
             default=True,
         ),
     ]
@@ -139,6 +156,23 @@ class CliConfig:
             ),
         ),
     ]
+    queue_state_path: Annotated[
+        str,
+        option(
+            "--queue-state-path",
+            help="Persistent download queue state file",
+            default=str(_dotify_paths.config_dir / "queue.json"),
+            type=click.Path(file_okay=True, dir_okay=False, writable=True),
+        ),
+    ]
+    resume: Annotated[
+        bool,
+        option(
+            "--resume/--no-resume",
+            help="Resume completed work from the persistent queue",
+            default=True,
+        ),
+    ]
     # API specific options
     session_type: Annotated[
         SessionType,
@@ -147,6 +181,55 @@ class CliConfig:
             help="Session type to use for Spotify API",
             default=api_sig.parameters["session_type"].default,
             type=SessionType,
+        ),
+    ]
+    librespot_credentials_path: Annotated[
+        str,
+        option(
+            "--librespot-credentials-path",
+            help="Reusable credentials created by 'dotify auth librespot'",
+            default=str(_dotify_paths.librespot_credentials_path),
+            type=click.Path(
+                file_okay=True,
+                dir_okay=False,
+                resolve_path=True,
+            ),
+        ),
+    ]
+    widevine_retries: Annotated[
+        int,
+        option(
+            "--widevine-retries",
+            help="Maximum Widevine 429 retry count",
+            default=api_sig.parameters["widevine_retries"].default,
+            type=click.IntRange(min=0),
+        ),
+    ]
+    widevine_backoff: Annotated[
+        int,
+        option(
+            "--widevine-backoff",
+            help="Initial Widevine 429 backoff in seconds",
+            default=api_sig.parameters["widevine_backoff"].default,
+            type=click.IntRange(min=1),
+        ),
+    ]
+    widevine_max_wait: Annotated[
+        int,
+        option(
+            "--widevine-max-wait",
+            help="Maximum automatic Widevine wait in seconds",
+            default=api_sig.parameters["widevine_max_wait"].default,
+            type=click.IntRange(min=0),
+        ),
+    ]
+    widevine_request_interval: Annotated[
+        float,
+        option(
+            "--widevine-request-interval",
+            help="Minimum interval between Widevine requests in seconds",
+            default=api_sig.parameters["widevine_request_interval"].default,
+            type=click.FloatRange(min=0),
         ),
     ]
     cookies_path: Annotated[
@@ -162,6 +245,23 @@ class CliConfig:
                 readable=True,
                 resolve_path=True,
             ),
+        ),
+    ]
+    cookies_from_browser: Annotated[
+        str,
+        option(
+            "--cookies-from-browser",
+            help="Refresh Spotify web cookies from a local browser before startup",
+            default=None,
+            type=click.Choice(SUPPORTED_BROWSER_SOURCES),
+        ),
+    ]
+    browser_profile: Annotated[
+        str,
+        option(
+            "--browser-profile",
+            help="Optional browser profile name or directory for cookie import",
+            default=None,
         ),
     ]
     # Base Interface specific options
@@ -210,6 +310,14 @@ class CliConfig:
             help="Comma-separated audio quality priority",
             default=audio_interface_sig.parameters["audio_quality_priority"].default,
             type=Csv(AudioQuality),
+        ),
+    ]
+    strict_audio_quality: Annotated[
+        bool,
+        option(
+            "--strict-audio-quality/--allow-quality-fallback",
+            help="Use only requested qualities; disable implicit Web/AAC fallback",
+            default=audio_interface_sig.parameters["strict_audio_quality"].default,
         ),
     ]
     # Video Interface specific options

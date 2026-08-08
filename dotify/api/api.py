@@ -1,8 +1,11 @@
 import asyncio
-import base64
+import datetime
 import logging
 import time
+from collections.abc import Awaitable, Callable
+from email.utils import parsedate_to_datetime
 from http.cookiejar import MozillaCookieJar
+from pathlib import Path
 
 import base62
 import httpx
@@ -29,10 +32,18 @@ from .constants import (
     TRACK_CREDITS_API_URL,
     VIDEO_MANIFEST_API_URL,
     WIDEVINE_LICENSE_API_URL,
+    WIDEVINE_MAX_AUTOMATIC_WAIT_SECONDS,
+    WIDEVINE_MAX_RETRIES,
+    WIDEVINE_RETRY_BACKOFF_SECONDS,
 )
 from .device_flow import SpotifyDeviceFlow
 from .enums import SessionType
-from .exceptions import DotifyRequestException, DotifyAuthenticationException
+from .exceptions import (
+    DotifyAuthenticationException,
+    DotifyLibrespotAuthenticationException,
+    DotifyLibrespotConnectionException,
+    DotifyRequestException,
+)
 from .proto.extendedmetadata_pb2 import BatchedEntityRequest, BatchedExtensionResponse
 from .proto.playplay_pb2 import PlayPlayLicenseRequest, PlayPlayLicenseResponse
 from .totp import Totp
@@ -40,14 +51,54 @@ from .totp import Totp
 logger = logging.getLogger(__name__)
 
 
+def _parse_retry_after(value: str | None) -> float | None:
+    """Return a Retry-After delay in seconds for delta or HTTP-date values."""
+
+    if not value:
+        return None
+    value = value.strip()
+    if value.isdigit():
+        return float(value)
+    try:
+        retry_at = parsedate_to_datetime(value)
+    except (TypeError, ValueError):
+        return None
+    if retry_at.tzinfo is None:
+        retry_at = retry_at.replace(tzinfo=datetime.timezone.utc)
+    return max(
+        0.0,
+        (retry_at - datetime.datetime.now(datetime.timezone.utc)).total_seconds(),
+    )
+
+
 class SpotifyApi:
     def __init__(
         self,
         sp_dc: str | None = None,
         session_type: SessionType = SessionType.LIBRESPOT,
+        librespot_credentials_path: str | None = None,
+        widevine_retries: int = WIDEVINE_MAX_RETRIES,
+        widevine_backoff: int = WIDEVINE_RETRY_BACKOFF_SECONDS,
+        widevine_max_wait: int = WIDEVINE_MAX_AUTOMATIC_WAIT_SECONDS,
+        widevine_request_interval: float = 0,
+        widevine_wait_callback: Callable[
+            [float, int, int], Awaitable[None]
+        ]
+        | None = None,
     ) -> None:
         self.sp_dc = sp_dc
         self.session_type = session_type
+        self.librespot_credentials_path = librespot_credentials_path or str(
+            Path.home() / ".dotify" / "librespot_credentials.json"
+        )
+        self.widevine_retries = max(0, widevine_retries)
+        self.widevine_backoff = max(1, widevine_backoff)
+        self.widevine_max_wait = max(0, widevine_max_wait)
+        self.widevine_request_interval = max(0.0, widevine_request_interval)
+        self.widevine_wait_callback = widevine_wait_callback
+        self._widevine_request_lock = asyncio.Lock()
+        self._last_widevine_request_at = 0.0
+        self.librespot = None
 
     @property
     def premium_session(self) -> bool:
@@ -75,7 +126,7 @@ class SpotifyApi:
             if cookie.domain == COOKIE_DOMAIN
         }
 
-        logger.debug(f"Parsed cookies: {cookie_dict}")
+        logger.debug("Parsed Spotify cookie names: %s", sorted(cookie_dict))
 
         return cookie_dict
 
@@ -96,8 +147,8 @@ class SpotifyApi:
             )
 
         return await cls.create(
-            sp_dc=sp_dc,
             *args,
+            sp_dc=sp_dc,
             **kwargs,
         )
 
@@ -108,8 +159,11 @@ class SpotifyApi:
         **kwargs,
     ) -> "SpotifyApi":
         api = cls(*args, **kwargs)
-
-        await api._initialize()
+        try:
+            await api._initialize()
+        except Exception:
+            await api.aclose()
+            raise
 
         return api
 
@@ -117,6 +171,11 @@ class SpotifyApi:
         self._initialize_client()
         await self._initialize_authorization()
         await self._initialize_user_profile()
+        if (
+            self.session_type == SessionType.LIBRESPOT
+            and not getattr(self, "is_anonymous_token", False)
+        ):
+            await asyncio.to_thread(self._initialize_librespot)
 
     def _initialize_client(self) -> None:
         self._transport = RetryTransport(
@@ -155,13 +214,10 @@ class SpotifyApi:
             self.client.cookies.update({"sp_dc": self.sp_dc})
 
     async def _initialize_authorization(self) -> None:
-        self.librespot = None
         if self.session_type == SessionType.DESKTOP:
             await self._initialize_authorization_with_device_flow()
         elif self.session_type in {SessionType.LIBRESPOT, SessionType.WEB}:
             await self._initialize_authorization_with_totp()
-            if self.session_type == SessionType.LIBRESPOT and not getattr(self, "is_anonymous_token", False):
-                await asyncio.to_thread(self._initialize_librespot)
 
     def _set_authorization_header(
         self,
@@ -213,19 +269,45 @@ class SpotifyApi:
         from .librespot import Librespot
 
         try:
-            self.librespot = Librespot(access_token=self._access_token)
-        except Exception as e:
-            if "403" in str(e):
-                logger.warning(
-                    "Librespot connection failed (status 403). This usually means:\n"
-                    "  1. You are using a Free Spotify account (Librespot requires Spotify Premium)\n"
-                    "  2. Your cookies are expired or invalid\n"
-                    "Falling back to Web session type..."
+            self.librespot = Librespot(
+                credentials_path=self.librespot_credentials_path,
+            )
+        except FileNotFoundError as error:
+            raise DotifyLibrespotAuthenticationException(
+                "Librespot credentials were not found at "
+                f"{self.librespot_credentials_path}. Spotify cookies and "
+                "Librespot OAuth credentials are separate."
+            ) from error
+        except ValueError as error:
+            raise DotifyLibrespotAuthenticationException(
+                "The stored Librespot credentials are invalid or unreadable."
+            ) from error
+        except (ConnectionError, TimeoutError, OSError) as error:
+            details = str(error).strip() or type(error).__name__
+            raise DotifyLibrespotConnectionException(
+                f"Librespot could not connect to a Spotify access point: {details}"
+            ) from error
+        except Exception as error:
+            if "403" in str(error):
+                account = "Premium" if self.premium_session else "non-Premium"
+                message = (
+                    f"Spotify reports a {account} account, but rejected the stored "
+                    "Librespot credentials while requesting its internal token "
+                    "(status 403)."
                 )
-                self.librespot = None
-                self.session_type = SessionType.WEB
             else:
-                raise e
+                message = f"Librespot session initialization failed: {error}"
+            raise DotifyLibrespotAuthenticationException(message) from error
+
+    async def aclose(self) -> None:
+        librespot = getattr(self, "librespot", None)
+        if librespot is not None:
+            await asyncio.to_thread(librespot.close)
+            self.librespot = None
+
+        client = getattr(self, "client", None)
+        if client is not None and not client.is_closed:
+            await client.aclose()
 
     async def _get_server_time(self) -> int:
         response = await self.client.get(SERVER_TIME_URL)
@@ -264,7 +346,7 @@ class SpotifyApi:
                 response_text=response.text,
             )
 
-        logger.debug(f"Received session info: {session_info}")
+        logger.debug("Received Spotify session information")
 
         return session_info
 
@@ -290,7 +372,7 @@ class SpotifyApi:
                 response_text=response.text,
             )
 
-        logger.debug(f"Received client token: {client_token}")
+        logger.debug("Received Spotify client token")
 
         return client_token
 
@@ -314,9 +396,10 @@ class SpotifyApi:
         self,
         operation_name: str,
         persisted_query_hash: str,
-        variables: dict = {},
+        variables: dict | None = None,
     ) -> dict:
         await self._refresh_authorization_if_needed()
+        variables = variables or {}
 
         response = await self.client.post(
             PATHFINDER_API_URL,
@@ -614,9 +697,10 @@ class SpotifyApi:
         self,
         media_id: str,
         media_type: str,
-        file_formats: list[str] = ["file_ids_mp4", "manifest_ids_video"],
+        file_formats: list[str] | None = None,
     ) -> dict:
         await self._refresh_authorization_if_needed()
+        file_formats = file_formats or ["file_ids_mp4", "manifest_ids_video"]
 
         response = await self.client.get(
             PLAYBACK_INFO_API_URL.format(
@@ -715,10 +799,58 @@ class SpotifyApi:
     async def get_widevine_license(self, challenge: bytes, media_type: str) -> bytes:
         await self._refresh_authorization_if_needed()
 
-        response = await self.client.post(
-            WIDEVINE_LICENSE_API_URL.format(type=media_type),
-            content=challenge,
-        )
+        async with self._widevine_request_lock:
+            retry_after = None
+            for retry_index in range(self.widevine_retries + 1):
+                elapsed = time.monotonic() - self._last_widevine_request_at
+                pacing_delay = self.widevine_request_interval - elapsed
+                if pacing_delay > 0:
+                    logger.info(
+                        "Pacing Widevine license requests; waiting %.1f seconds.",
+                        pacing_delay,
+                    )
+                    await asyncio.sleep(pacing_delay)
+
+                response = await self.client.post(
+                    WIDEVINE_LICENSE_API_URL.format(type=media_type),
+                    content=challenge,
+                )
+                self._last_widevine_request_at = time.monotonic()
+                if response.status_code != 429:
+                    break
+
+                retry_after = _parse_retry_after(response.headers.get("Retry-After"))
+                if retry_index >= self.widevine_retries:
+                    break
+
+                delay = retry_after
+                if delay is None:
+                    delay = self.widevine_backoff * (2**retry_index)
+                if delay > self.widevine_max_wait:
+                    logger.warning(
+                        "Spotify rate-limited the Widevine license request and "
+                        "requested a %.0f-second cooldown; automatic retry stopped.",
+                        delay,
+                    )
+                    break
+
+                logger.warning(
+                    "Spotify rate-limited the Widevine license request (429); "
+                    "retrying in %.0f seconds (%d/%d). Do not start another "
+                    "Dotify process.",
+                    delay,
+                    retry_index + 1,
+                    self.widevine_retries,
+                )
+                if self.widevine_wait_callback:
+                    await self.widevine_wait_callback(
+                        delay,
+                        retry_index + 1,
+                        self.widevine_retries,
+                    )
+                else:
+                    await asyncio.sleep(delay)
+
         widevine_license = response.content
 
         if response.status_code != 200 or not widevine_license:
@@ -726,11 +858,10 @@ class SpotifyApi:
                 name="Widevine license",
                 response_status_code=response.status_code,
                 response_text=response.text,
+                retry_after=retry_after,
             )
 
-        logger.debug(
-            f"Received Widevine license: {base64.b64encode(widevine_license).decode()}"
-        )
+        logger.debug("Received Widevine license (%d bytes)", len(widevine_license))
 
         return widevine_license
 
@@ -780,7 +911,7 @@ class SpotifyApi:
         playplay_license = PlayPlayLicenseResponse()
         playplay_license.ParseFromString(response_bytes)
 
-        logger.debug(f"Received PlayPlay license: {playplay_license}")
+        logger.debug("Received PlayPlay license")
 
         return playplay_license
 

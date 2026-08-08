@@ -1,6 +1,5 @@
 import logging
 from enum import Enum
-from pathlib import Path
 
 import click
 
@@ -63,34 +62,3 @@ class CustomLoggerFormatter(logging.Formatter):
             + " %(message)s",
             datefmt=self.date_format,
         ).format(record)
-
-
-def prompt_path(
-    input_path: str,
-    is_dir: bool = False,
-) -> str:
-    path_validator = click.Path(
-        exists=True,
-        file_okay=not is_dir,
-        dir_okay=is_dir,
-    )
-    path_type = "directory" if is_dir else "file"
-
-    while True:
-        try:
-            result_path = path_validator.convert(input_path, None, None)
-            break
-        except click.BadParameter as e:
-            input_path = click.prompt(
-                (
-                    f'{path_type.capitalize()} "{Path(input_path).absolute()}" does not exist. '
-                    f"Create the {path_type} at the specified path, "
-                    f"type a new path or drag and drop the {path_type} here. "
-                    "Then, press enter to continue"
-                ),
-                default=input_path,
-                show_default=False,
-            )
-            input_path = input_path.strip('"')
-
-    return result_path

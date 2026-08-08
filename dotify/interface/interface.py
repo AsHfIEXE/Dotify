@@ -99,7 +99,7 @@ class SpotifyInterface:
                 album_data=album_data,
                 album_items=album_items,
             )
-        except BaseException as e:
+        except Exception as e:
             base_media.error = e
             return base_media
 
@@ -150,7 +150,7 @@ class SpotifyInterface:
                 show_data=show_data,
                 show_items=show_items,
             )
-        except BaseException as e:
+        except Exception as e:
             base_media.error = e
             return base_media
 

@@ -98,7 +98,8 @@ class SpotifyMusicVideoInterface(SpotifyVideoInterface):
             else None
         )
 
-        if not self.skip_stream_info:
+        async def resolve_stream() -> None:
+            nonlocal playback_info
             media.stream_info = await self.get_stream_info(
                 track_id,
                 "track",
@@ -109,6 +110,12 @@ class SpotifyMusicVideoInterface(SpotifyVideoInterface):
                 media.stream_info.audio_track.widevine_pssh
             )
 
-        logger.debug(f"Parsed music video media: {media}")
+        if not self.skip_stream_info:
+            if self.defer_stream_info:
+                media.stream_loader = resolve_stream
+            else:
+                await resolve_stream()
+
+        logger.debug("Parsed music video media: %s", media.media_id)
 
         return media

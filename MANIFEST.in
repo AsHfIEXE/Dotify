@@ -1,0 +1,3 @@
+include CONTRIBUTING.md
+recursive-include docs *.md
+recursive-include tests/fixtures *.json

@@ -60,6 +60,11 @@ class DotifyPaths:
         return self._config_dir / "cookies.txt"
 
     @property
+    def librespot_credentials_path(self) -> Path:
+        """Reusable credentials created by the Librespot OAuth flow."""
+        return self._config_dir / "librespot_credentials.json"
+
+    @property
     def temp_dir(self) -> Path:
         """Temporary directory for downloads."""
         return self._config_dir / "temp"

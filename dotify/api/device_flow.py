@@ -34,7 +34,7 @@ class SpotifyDeviceFlow:
         await self._submit_user_code(user_code, flow_ctx, csrf_token, verification_url)
         token_data = await self._exchange_device_code(device_code)
 
-        logger.debug(f"Obtained device flow token data: {token_data}")
+        logger.debug("Obtained Spotify device-flow token")
 
         return token_data
 
@@ -60,8 +60,8 @@ class SpotifyDeviceFlow:
         try:
             flow_ctx_full = parse_qs(response.url.query.decode())["flow_ctx"][0]
             flow_ctx = flow_ctx_full.split(":")[0]
-        except (KeyError, IndexError):
-            raise ValueError("Failed to extract flow_ctx")
+        except (KeyError, IndexError) as error:
+            raise ValueError("Failed to extract flow_ctx") from error
 
         csrf_token = self._extract_csrf_token(response.text)
 
@@ -75,8 +75,8 @@ class SpotifyDeviceFlow:
         try:
             json_data = json.loads(match.group(1))
             return json_data["props"]["initialToken"]
-        except (AttributeError, json.JSONDecodeError, KeyError):
-            raise ValueError("Failed to extract CSRF token")
+        except (AttributeError, json.JSONDecodeError, KeyError) as error:
+            raise ValueError("Failed to extract CSRF token") from error
 
     async def _submit_user_code(
         self,
@@ -101,8 +101,8 @@ class SpotifyDeviceFlow:
         try:
             submit_result = response.json()
             assert submit_result.get("result") == "ok"
-        except (json.JSONDecodeError, AssertionError):
-            raise ValueError("Failed to submit user code")
+        except (json.JSONDecodeError, AssertionError) as error:
+            raise ValueError("Failed to submit user code") from error
 
     async def _exchange_device_code(self, device_code: str) -> dict:
         async with httpx.AsyncClient(timeout=TIMEOUT) as client:
