@@ -9,6 +9,7 @@ description = "A command-line app for downloading songs, podcasts and videos fro
 readme = "README.md"
 license = "MIT"
 requires-python = ">=3.10"
+
 dependencies = [
     "async-lru>=2.1.0",
     "click>=8.3.1",
@@ -22,6 +23,7 @@ dependencies = [
     "protobuf>=6.33.5",
     "pybase62>=1.0.0",
     "pycryptodome>=3.23.0",
+    "pyfreedom>=0.1.0,<0.2",
     "pywidevine>=1.9.0",
     "rich>=13.9.0",
     "unplayplay>=0.0.2",
@@ -35,9 +37,6 @@ repository = "https://github.com/AsHfIEXE/Dotify"
 dotify = "dotify.cli.cli:cli"
 
 [project.optional-dependencies]
-librespot = [
-    "pyfreedom>=0.1.0,<0.2",
-]
 dev = [
     "build>=1.2",
     "pytest>=8.3",
