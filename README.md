@@ -154,7 +154,7 @@ inside the virtual environment import the `dotify/*.py` files from this working
 tree directly:
 
 ```bash
-git clone https://github.com/condainstall/dotify.git
+git clone https://github.com/ashfiexe/dotify.git
 cd dotify
 python -m venv .venv
 source .venv/bin/activate
