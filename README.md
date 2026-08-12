@@ -1,3 +1,5 @@
+
+
 <div align="center">
 
 [![PyPI](https://img.shields.io/pypi/v/dotify-cli?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/dotify-cli/)
@@ -81,17 +83,15 @@ format is not guaranteed to exist for every item.
 
 ### From PyPI
 
-The default session type is `librespot`, so the recommended installation is:
-
-```bash
-python -m pip install --upgrade "dotify-cli[librespot]"
-```
-
-The base package can instead be installed without that optional dependency,
-but the `web` session and a valid WVD must then be selected explicitly:
+The default session type is `librespot`. Since the `pyfreedom` dependency is included in the base package, the recommended installation is:
 
 ```bash
 python -m pip install --upgrade dotify-cli
+```
+
+To use the `web` session instead, a compatible Widevine `device.wvd` must be supplied and the session type selected explicitly:
+
+```bash
 dotify --session-type web "SPOTIFY_URL"
 ```
 
