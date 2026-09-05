@@ -1,10 +1,17 @@
 
 
 <div align="center">
+  
+[![GitHub](https://img.shields.io/badge/GitHub-181717.svg?style=for-the-badge&logo=GitHub&logoColor=white)](https://github.com/AsHfIEXE/Dotify)
+[![GitHub top language](https://img.shields.io/github/languages/top/AsHfIEXE/dotify?style=for-the-badge)](https://github.com/AsHfIEXE/Dotify)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/dotify-cli?style=for-the-badge&color=blue&label=Downloads)](https://pypi.org/project/dotify-cli/)
+[![GitHub Downloads](https://img.shields.io/github/downloads/AsHfIEXE/Dotify/total?style=for-the-badge&logo=github&logoColor=white)](https://github.com/AsHfIEXE/Dotify/releases)
+[![GitHub last commit](https://img.shields.io/github/last-commit/AsHfIEXE/dotify/main?style=for-the-badge)](https://github.com/AsHfIEXE/Dotify)
+[![GitHub Repo stars](https://img.shields.io/github/stars/AsHfIEXE/dotify?style=for-the-badge&cacheSeconds=60)](https://github.com/AsHfIEXE/Dotify)
+[![PyPI Version](https://img.shields.io/pypi/v/dotify-cli?style=for-the-badge&logo=PyPI&logoColor=white)](https://pypi.org/project/dotify-cli/)
+[![Python Version](https://img.shields.io/pypi/pyversions/dotify-cli?style=for-the-badge&logo=Python&logoColor=white)](https://pypi.org/project/dotify-cli/)
+[![License](https://img.shields.io/github/license/AsHfIEXE/Dotify?style=for-the-badge)](https://github.com/AsHfIEXE/Dotify)
 
-[![PyPI](https://img.shields.io/pypi/v/dotify-cli?style=for-the-badge&logo=pypi&logoColor=white)](https://pypi.org/project/dotify-cli/)
-[![Python](https://img.shields.io/pypi/pyversions/dotify-cli?style=for-the-badge&logo=python&logoColor=white)](https://pypi.org/project/dotify-cli/)
-[![License](https://img.shields.io/badge/license-MIT-blue?style=for-the-badge)](LICENSE)
 
 # 🎵 Dotify
 
