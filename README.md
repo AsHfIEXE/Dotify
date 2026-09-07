@@ -29,7 +29,8 @@ Spotify.
 > only for content you are authorized to access and download, and comply with
 > the laws and service terms that apply to you.
 
-This checkout is release version `3.0.4`.
+The release version is defined once in [`dotify/version.py`](dotify/version.py) and
+automatically reused for the PyPI package, so the CLI and package metadata always match.
 
 ## What Dotify downloads from
 
