@@ -39,10 +39,22 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PKG_VERSION=$(python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])")
+          PKG_VERSION=$(python - <<'EOF'
+          import ast
+          from pathlib import Path
+
+          tree = ast.parse(Path("dotify/version.py").read_text(encoding="utf-8"))
+          for node in tree.body:
+              if isinstance(node, ast.Assign) and any(
+                  getattr(t, "id", None) == "__version__" for t in node.targets
+              ):
+                  print(node.value.value)
+                  break
+          EOF
+          )
           echo "Tag version: $TAG_VERSION, package version: $PKG_VERSION"
           if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "::error::Tag v$TAG_VERSION does not match pyproject.toml version $PKG_VERSION. Update pyproject.toml before tagging."
+            echo "::error::Tag v$TAG_VERSION does not match dotify/version.py version $PKG_VERSION. Update __version__ before tagging."
             exit 1
           fi
 
