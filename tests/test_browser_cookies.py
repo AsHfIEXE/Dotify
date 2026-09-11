@@ -1,3 +1,4 @@
+import os
 from http.cookiejar import Cookie, CookieJar, MozillaCookieJar
 
 import pytest
@@ -50,7 +51,8 @@ def test_browser_import_writes_only_spotify_sp_dc(tmp_path, monkeypatch):
     assert [(entry.name, entry.value) for entry in saved] == [
         ("sp_dc", "spotify-secret")
     ]
-    assert output.stat().st_mode & 0o777 == 0o600
+    if os.name != "nt":
+        assert output.stat().st_mode & 0o777 == 0o600
     assert "unrelated-secret" not in output.read_text(encoding="utf-8")
     assert spotify_cookie_file_has_sp_dc(output)
 

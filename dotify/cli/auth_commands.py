@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import errno
-import os
 import webbrowser
 from pathlib import Path
 
@@ -14,6 +13,7 @@ from ..api.browser_cookies import (
 )
 from ..api.exceptions import DotifyBrowserCookieException
 from ..env.paths import DotifyPaths
+from ..security import restrict_file_to_current_user
 
 
 @click.group()
@@ -99,10 +99,8 @@ def authorize_librespot(
         return
 
     previous_credentials = None
-    previous_mode = None
     if path.exists():
         previous_credentials = path.read_bytes()
-        previous_mode = path.stat().st_mode & 0o777
         path.unlink()
 
     def restore_previous_credentials() -> None:
@@ -111,7 +109,7 @@ def authorize_librespot(
         if previous_credentials is not None:
             path.parent.mkdir(parents=True, exist_ok=True)
             path.write_bytes(previous_credentials)
-            os.chmod(path, previous_mode or 0o600)
+            restrict_file_to_current_user(path)
 
     def show_authorization_url(url: str) -> None:
         click.echo("Open this Spotify authorization URL:")

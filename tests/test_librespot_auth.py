@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 import pytest
@@ -185,7 +186,8 @@ def test_failed_forced_authorization_restores_previous_credentials(
     assert result.exit_code == 1
     assert "authorization rejected" in result.output
     assert credentials_path.read_text(encoding="utf-8") == "existing"
-    assert credentials_path.stat().st_mode & 0o777 == 0o600
+    if os.name != "nt":
+        assert credentials_path.stat().st_mode & 0o777 == 0o600
 
 
 def test_auth_web_imports_cookie_from_browser(tmp_path, monkeypatch):

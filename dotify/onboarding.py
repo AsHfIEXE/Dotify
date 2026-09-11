@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import configparser
-import os
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
@@ -13,6 +12,7 @@ from InquirerPy.base.control import Choice
 
 from .env.paths import DotifyPaths
 from .i18n import Translator, detect_language
+from .security import restrict_file_to_current_user
 
 
 QUALITY_PROFILES: dict[str, str] = {
@@ -143,8 +143,10 @@ class DotifyInitializer:
             ) as temporary:
                 config.write(temporary)
                 temporary_name = temporary.name
-            os.chmod(temporary_name, 0o600)
-            Path(temporary_name).replace(self.config_path)
+            temporary_path = Path(temporary_name)
+            restrict_file_to_current_user(temporary_path)
+            temporary_path.replace(self.config_path)
+            restrict_file_to_current_user(self.config_path)
         finally:
             if temporary_name and Path(temporary_name).exists():
                 Path(temporary_name).unlink()

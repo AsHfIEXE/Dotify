@@ -1,4 +1,5 @@
 import configparser
+import os
 import stat
 
 import pytest
@@ -20,7 +21,8 @@ def test_initializer_writes_cli_compatible_config_atomically(tmp_path):
     assert config["dotify"]["language"] == "tr"
     assert config["dotify"].getboolean("tui") is True
     assert config["dotify"]["output"] == settings.output
-    assert stat.S_IMODE(written.stat().st_mode) == 0o600
+    if os.name != "nt":
+        assert stat.S_IMODE(written.stat().st_mode) == 0o600
 
 
 def test_initializer_preserves_existing_config_without_overwrite(tmp_path):

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 import platform
 from http.cookiejar import Cookie, MozillaCookieJar
 from pathlib import Path
@@ -11,6 +10,7 @@ from pathlib import Path
 from yt_dlp.cookies import extract_cookies_from_browser
 
 from .exceptions import DotifyBrowserCookieException
+from ..security import restrict_file_to_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -131,9 +131,9 @@ def import_spotify_cookie_from_browser(
     cookie_jar.set_cookie(_spotify_cookie(selected_cookie.value, selected_cookie.expires))
     try:
         cookie_jar.save(ignore_discard=True, ignore_expires=True)
-        os.chmod(temporary, 0o600)
+        restrict_file_to_current_user(temporary)
         temporary.replace(path)
-        os.chmod(path, 0o600)
+        restrict_file_to_current_user(path)
     except Exception:
         temporary.unlink(missing_ok=True)
         raise

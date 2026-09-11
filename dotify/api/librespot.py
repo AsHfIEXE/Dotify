@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-import os
 from pathlib import Path
 from typing import Callable
 
 from pyfreedom.core import Session
+
+from ..security import restrict_file_to_current_user
 
 
 class Librespot:
@@ -60,7 +61,7 @@ class Librespot:
             instance.close()
             raise RuntimeError("Librespot did not create a credentials file")
 
-        os.chmod(instance.credentials_path, 0o600)
+        restrict_file_to_current_user(instance.credentials_path)
         return instance
 
     def close(self) -> None:
